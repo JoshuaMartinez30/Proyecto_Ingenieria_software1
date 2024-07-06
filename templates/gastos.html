@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Lista de Gastos</title>
+</head>
+<body>
+
+    
+    <div class="container">
+        <h2>Lista de Gastos</h2>
+        <br>
+        <a class="ing" href="{{ url_for('index') }}">Ingresar Gasto</a>
+        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gasto in gastos %}
+                <tr>
+                    <td>{{ gasto[0] }}</td>
+                    <td>{{ gasto[1] }}</td>
+                    <td>{{ gasto[2] }}</td>
+                    <td>{{ gasto[3] }}</td>
+                    <td>
+                        <a class="baa" href="{{ url_for('edit', id_gasto=gasto[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar', id_gasto=gasto[0]) }}">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+    </div>
+</body>
+</html>

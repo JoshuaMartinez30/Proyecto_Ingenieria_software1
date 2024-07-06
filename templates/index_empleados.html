@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Tabla de empleados</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Tabla de empleados</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required><br><br>
+            <label for="apellido">Apellido:</label>
+            <input type="text" id="apellido" name="apellido" required><br><br>
+            <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required><br><br>
+            <label for="puesto">Puesto de Trabajo:</label>
+            <input type="text" id="puesto_de_trabajo" name="puesto_de_trabajo" required><br><br>
+            <label for="fecha_contratacion">Fecha de Contratación:</label>
+            <input type="date" id="fecha_contratacion" name="fecha_contratacion" required><br><br>
+            <label for="sucursal">Sucursal:</label>
+            <input type="text" id="sucursal" name="sucursal" required><br><br>
+            <label for="salario">Salario:</label>
+            <input type="text" id="salario" name="salario" required><br><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email"><br><br>
+            <label for="telefono">Teléfono:</label>
+            <input type="text" id="telefono" name="telefono"><br><br>
+            <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a value="lista de empleados" href="{{ url_for('empleados') }}">Lista de empleados</a>
+    </div>
+</body>
+</html>

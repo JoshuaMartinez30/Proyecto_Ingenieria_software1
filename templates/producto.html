@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Tabla de informacion | Productos</title>
+</head>
+<body>
+        
+        <h2>Lista de productos</h2>
+        <form method="get" action="{{ url_for('producto') }}">
+            <input type="text" name="search" placeholder="buscar productos..." value="{{ search_query }}">
+            <button type="submit">buscar</button>
+        </form>
+
+        <br>
+        <a class="ing" href="{{ url_for('index') }}">Ingresar productos</a>
+        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Categoria</th>
+                    <th>Precio</th>
+                    <th>Acciones</tr>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in producto %}
+                <tr>
+                    <td>{{ producto[0] }}</td>
+                    <td>{{ producto[1] }}</td>
+                    <td>{{ producto[2] }}</td>
+                    <td>{{ producto[3] }}</td>
+                    <td><a class="baa" href="{{ url_for('edit', Id_producto=producto[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar', Id_producto=producto[0]) }}">Eliminar</a>
+                    </td>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

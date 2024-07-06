@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>ingrese el proveedor</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Ingrese su proveedor</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
+            <label for="name">Nombre del proveedor:</label>
+            <input type="text" id="Nombre_del_proveedor" name="Nombre_del_proveedor" required><br><br>
+            <label for="gender">Contacto:</label>
+            <input type="text" id="Contacto" name="Contacto" required><br><br>
+            <label for="nationality">Producto/Servicio:</label>
+            <input type="text" id="Producto_Servicio" name="Producto_Servicio" required><br><br>
+            <label for="nationality">Historial de desempeño:</label>
+            <input type="text" id="Historial_de_desempeño" name="Historial_de_desempeño" required><br><br>
+            <label for="name">ID del pedido:</label>
+            <input type="text" id="id_pedido" name="id_pedido" required><br><br>
+            <label for="name">Id de la Marca:</label>
+            <input type="text" id="id_marca" name="id_marca" required><br><br>
+            <input type="submit" value="Guardar">
+        </form> 
+        <br>
+        <a value="lista de proveedores" href="{{ url_for('proveedores') }}">lista de proveedores</a>
+    </div>
+</body>
+</html>

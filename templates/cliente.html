@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Clientes</title>
+</head>
+<body>
+        
+        <h2>Lista de Clientes</h2>
+        <form method="get" action="{{ url_for('cliente') }}">
+            <input type="text" name="search" placeholder="buscar productos al cliente..." value="{{ search_query }}">
+            <button type="submit">buscar</button>
+        </form>
+
+        <br>
+        <a class="ing" href="{{ url_for('index_cliente') }}">Ingresar productos al cliente</a>
+        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Fecha Nacimiento</th>
+                    <th>Email</th>
+                    <th>Telefono</th>
+                    <th>Direccion</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in cliente %}
+                <tr>
+                    <td>{{ cliente[0] }}</td>
+                    <td>{{ cliente[1] }}</td>
+                    <td>{{ cliente[2] }}</td>
+                    <td>{{ cliente[3] }}</td>
+                    <td>{{ cliente[4] }}</td>
+                    <td>{{ cliente[5] }}</td>
+                    <td>{{ cliente[6] }}</td>
+                    <td>{{ cliente[7] }}</td>
+                    <td><a class="baa" href="{{ url_for('edit_cliente', id_cliente=cliente[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+</body>
+</html>

@@ -1,0 +1,93 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e1e5eb;
+}
+
+.ing{
+    border-radius: 10%;
+    background-color: #e1a21b;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.ing:hover {
+    box-shadow: 0 0.2rem 0.5rem rgb(38, 216, 14);
+}
+
+.baa{
+    border-radius: 10%;
+    background-color: #362e0a;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.baa:hover {
+    box-shadow: 0 0.2rem 0.5rem rgb(55, 19, 218);
+}
+
+.bee{
+    border-radius: 10%;
+    background-color: #15be29;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.bee:hover {
+    box-shadow: 0 0.2rem 0.5rem crimson;
+}
+
+.container {
+    width: 50%;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-top: 10px;
+}
+
+input[type="text"], input[type="submit"] {
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 16px;
+}
+
+input[type="submit"] {
+    width: 100px;
+    align-self: center;
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}

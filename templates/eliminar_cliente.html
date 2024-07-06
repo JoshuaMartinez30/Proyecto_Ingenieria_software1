@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar cliente</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar cliente</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}" method="post">
+            <label for="name">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ cliente[1] }}" readonly><br><br>
+            <label for="gender">apellido:</label>
+            <input type="text" id="apellido" name="apellido" value="{{ cliente[2] }}" readonly><br><br>
+            <label for="nationality">Fecha nacimiento:</label>
+            <input type="text" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ cliente[3] }}" readonly><br><br>
+            <label for="nationality">Email:</label>
+            <input type="text" id="email" name="email" value="{{ cliente[4] }}" readonly><br><br>
+            <label for="nationality">Telefono:</label>
+            <input type="text" id="telefono" name="telefono" value="{{ cliente[5] }}" readonly><br><br>
+            <label for="nationality">Direccion:</label>
+            <input type="text" id="direccion" name="direccion" value="{{ cliente[6] }}" readonly><br><br>
+            <label for="nationality">Fecha Registro:</label>
+            <input type="text" id="fecha_registro" name="fecha_registro" value="{{ cliente[7] }}" readonly><br><br>
+            <form action="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('estas seguro de eliminar este producto del cliente? {{cliente[1]}}');">Eliminar</button>
+        </form>
+        
+        <br>
+        <a href="{{ url_for('cliente') }}">lista de cliente</a>
+    </div>
+</body>
+</html>

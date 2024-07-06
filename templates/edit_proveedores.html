@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Proveedor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Editar Proveedor</h1>
+    <form method="POST" action="{{ url_for('edit_proveedores', id_proveedor=proveedores[0]) }}">
+        <label>Nombre del Proveedor:</label>
+        <input type="text" name="Nombre_del_proveedor" value="{{ proveedores[1] }}">
+        <label>Contacto:</label>
+        <input type="text" name="Contacto" value="{{ proveedores[2] }}">
+        <label>Producto/Servicio:</label>
+        <input type="text" name="Producto_Servicio" value="{{ proveedores[3] }}">
+        <label>Historial de Desempeño:</label>
+        <input type="text" name="Historial_de_desempeño" value="{{ proveedores[4] }}">
+        <label>ID Pedido:</label>
+        <input type="text" name="id_pedido" value="{{ proveedores[5] }}">
+        <label>ID Marca:</label>
+        <input type="text" name="id_marca" value="{{ proveedores[6] }}">
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <a href="{{ url_for('proveedores') }}">lista de proveedores</a>
+</body>
+</html>
+
+        

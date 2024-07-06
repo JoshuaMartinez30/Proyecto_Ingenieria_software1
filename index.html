@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="style.css">
+    <title>Inicio | Grupo</title>
+</head>
+<body>
+    <!-- ........................................-->
+    <div>
+        <iframe class="vidi" width="560" height="315" src="https://www.youtube.com/embed/dZBJ1yRfuck?si=qsk0KdWsJaJD8uHC&autoplay=1&mute=1&loop=1&playlist=dZBJ1yRfuck" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div> 
+    
+<!-- CARRUSEL DE IMAGENES
+    <div class="carousel">
+        <div class="carousel-images">
+            <img src="img/ele.jpg" alt="Imagen 1">
+            <img src="img/ofer.jpg" alt="Imagen 2">
+            <img src="img/sr.jpg" alt="Imagen 3">
+            <img src="img/ett.jpg" alt="Imagen 4">
+            <img src="img/eter.webp" alt="Imagen 5">
+        </div>
+    </div>
+-->
+    <!-- ........................................-->
+    <div class="carousel-buttons">
+        <button onclick="window.location.href='http://127.0.0.1:5000/producto'">PRODUCTOS</button>  
+        <button onclick="window.location.href='http://127.0.0.1:5001/inventario'">INVENTARIO</button>
+        <button onclick="window.location.href='http://127.0.0.1:5003/empleados'">EMPLEADOS</button>
+    </div>
+    <div class="carousel-buttons">
+        <button onclick="window.location.href='http://127.0.0.1:5004/cliente'">CLIENTES</button>
+        <button onclick="window.location.href='http://127.0.0.1:5005/proveedores'">PROVEEDORES</button>
+        <button onclick="goToSlide(0)">Sin uso</button>
+    </div>
+    <!-- ........................................-->
+    <div class="image-grid">
+        <iframe class="vi" width="560" height="315" src="https://www.youtube.com/embed/RLkhnAN4PBQ?si=Q7UpT-vToS1bq8sP&autoplay=1&mute=1&loop=1&playlist=RLkhnAN4PBQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <img src="img/pw.jpg" alt="Imagen 2">
+        <div class="te">"SOMOS LOS MEJORES" <br> Por eso te brindamos lo mejor</div>
+        <iframe class="vii" width="560" height="315" src="https://www.youtube.com/embed/LMEN1F3bl6g?si=eDtnaqnr1b58L-pj&autoplay=1&mute=1&loop=1&playlist=LMEN1F3bl6g" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <!-- ........................................-->
+    <div class="carousel-buttons">
+        <button onclick="goToSlide(0)">hola</button>
+        <button onclick="goToSlide(0)">hola</button>
+        <button onclick="goToSlide(0)">hola</button>
+    </div>
+    <div class="carousel-buttons">
+        <button onclick="goToSlide(0)">hola</button>
+        <button onclick="goToSlide(0)">hola</button>
+        <button onclick="goToSlide(0)">hola</button>
+    </div>
+    <!-- ........................................-->
+    <nav class="sidebar">
+        <div class="sidebar-inner">
+            <header class="sidebar-header">
+                <button type="button" class="sidebar-burger" onclick="toggleSidebar()">
+                    <i class='bx bx-menu'></i>
+                </button>
+                <img src="img/first.png" alt="" class="sidebar-logo">
+            </header>
+
+            <nav class="sidebar-menu">
+                <button type="button">
+                    <i class='bx bx-home' ></i>
+                    <span>Inicio</span>
+                </button>
+                <button type="button">
+                    <i class='bx bx-user' ></i>
+                    <span>Cuenta</span>
+                </button>
+                <button type="button" class="has-border">
+                    <i class='bx bx-cog' ></i>
+                    <span>Ajustes</span>
+                </button>
+                <button type="button">
+                    <i class='bx bxs-notepad'></i>
+                    <span>Menu general</span>
+                </button>
+                <button type="button">
+                    <i class='bx bxs-store-alt' ></i>
+                    <span>Tienda</span>
+                </button>
+                <button type="button">
+                    <i class='bx bxs-pie-chart-alt-2'></i>
+                    <span>Datos</span>
+                </button>
+                <button type="button" class="has-border">
+                    <i class='bx bx-pencil'></i>
+                    <span>Comentario</span>
+                </button>
+                <button type="button">
+                    <i class='bx bx-folder' ></i>
+                    <span>Documentos</span>
+                </button>
+                <button type="button" onclick="window.location.href='http://127.0.0.1:5002/gastos'">
+                    <i class='bx bxs-coin'></i>
+                    <span>Monetario</span>
+                </button>
+                <button type="button">
+                    <i class='bx bx-paste'></i>
+                    <span>Informacion</span>
+                </button>
+            </nav>
+        </div>
+    </nav>
+    <!-- ........................................-->
+    <script src="script.js"></script>
+</body>
+</html>

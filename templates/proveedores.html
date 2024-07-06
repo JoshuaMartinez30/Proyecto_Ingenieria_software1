@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Proveedores</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Lista de Proveedores</h1>
+
+    <form method="GET" action="{{ url_for('proveedores') }}">
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar proveedor...">
+        <button type="submit">Buscar</button>
+    </form>
+
+    <br>
+    <a class="ing" href="{{ url_for('index_proveedores') }}">Ingresar Nuevo Proveedor</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Proveedor</th>
+                <th>Contacto</th>
+                <th>Producto/Servicio</th>
+                <th>Historial de Desempeño</th>
+                <th>ID Pedido</th>
+                <th>ID Marca</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proveedor in proveedores %}
+                <tr>
+                    <td>{{ proveedor[1] }}</td>
+                    <td>{{ proveedor[2] }}</td>
+                    <td>{{ proveedor[3] }}</td>
+                    <td>{{ proveedor[4] }}</td>
+                    <td>{{ proveedor[5] }}</td>
+                    <td>{{ proveedor[6] }}</td>
+                    <td>
+                        <a class="baa" href="{{ url_for('edit_proveedores', id_proveedor=proveedor[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_proveedores', id_proveedor=proveedor[0]) }}">Eliminar</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

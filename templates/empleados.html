@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Lista de Empleados</title>
+</head>
+<body>
+    <h2>Lista de empleados</h2>
+    <form method="get" action="{{ url_for('empleados') }}">
+        <input type="text" name="search" placeholder="Buscar empleados..." value="{{ search_query }}">
+        <button type="submit">Buscar</button>
+    </form>
+
+    <br>
+    <a class="ing"  href="{{ url_for('index_empleados') }}">Ingresar empleados</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Fecha de Nacimiento</th>
+                <th>Puesto de Trabajo</th>
+                <th>Fecha de Contratación</th>
+                <th>Sucursal</th>
+                <th>Salario</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for empleado in empleados %}
+            <tr>
+                <td>{{ empleado[0] }}</td>
+                <td>{{ empleado[1] }}</td>
+                <td>{{ empleado[2] }}</td>
+                <td>{{ empleado[3] }}</td>
+                <td>{{ empleado[4] }}</td>
+                <td>{{ empleado[5] }}</td>
+                <td>{{ empleado[6] }}</td>
+                <td>{{ empleado[7] }}</td>
+                <td>{{ empleado[8] }}</td>
+                <td>{{ empleado[9] }}</td>
+                <td><a class="btn" href="{{ url_for('edit_empleado', id_empleado=empleado[0]) }}">Editar</a>
+                    <a class="btn" href="{{ url_for('eliminar_empleado', id_empleado=empleado[0]) }}">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

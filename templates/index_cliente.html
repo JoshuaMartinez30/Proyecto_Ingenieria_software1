@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>ingrese su producto al cliente</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Ingrese su producto al cliente</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
+            
+            <label for="gender">nombre:</label>
+            <input type="text" id="nombre" name="nombre" required><br><br>
+            <label for="nationality">Apellido:</label>
+            <input type="text" id="apellido" name="apellido" required><br><br>
+            <label for="nationality">Fecha Nacimiento:</label>
+            <input type="text" id="fecha_nacimiento" name="fecha_nacimiento" required><br><br>
+            <label for="nationality">Email:</label>
+            <input type="text" id="email" name="email" required><br><br>
+            <label for="nationality">Telefono:</label>
+            <input type="text" id="telefono" name="telefono" required><br><br>
+            <label for="nationality">Direccion:</label>
+            <input type="text" id="direccion" name="direccion" required><br><br>
+            <label for="nationality">Fecha Registro:</label>
+            <input type="text" id="fecha_registro" name="fecha_registro" required><br><br>
+            <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a value="lista de productos en el cliente" href="{{ url_for('cliente') }}">lista de productos en el cliente</a>
+    </div>
+</body>
+</html>

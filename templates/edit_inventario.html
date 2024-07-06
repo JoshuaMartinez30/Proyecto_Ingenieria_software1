@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Editar inventario</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Editar Inventario</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('edit_inventario', id_inventario=inventario[0]) }}" method="post">
+            <label for="name">Nombre:</label>
+            <input type="text" id="nombre_del_producto" name="nombre_del_producto" value="{{ inventario[1] }}" required><br><br>
+            <label for="gender">Descripcion:</label>
+            <input type="text" id="descripcion" name="descripcion" value="{{ inventario[2] }}" required><br><br>
+            <label for="nationality">Cantidad en Stock:</label>
+            <input type="text" id="cantidad_en_stock" name="cantidad_en_stock" value="{{ inventario[3] }}" required><br><br>
+            <input type="submit" value="Update">
+            <label for="nationality">Stock Minimo:</label>
+            <input type="text" id="stock_minimo" name="stock_minimo" value="{{ inventario[4] }}" required><br><br>
+            <input type="submit" value="Update">
+            <label for="nationality">Stock maximo:</label>
+            <input type="text" id="stock_maximo" name="stock_maximo" value="{{ inventario[5] }}" required><br><br>
+            <input type="submit" value="Update">
+        </form>
+        
+        <br>
+        <a href="{{ url_for('inventario') }}">lista de inventario</a>
+    </div>
+</body>
+</html>

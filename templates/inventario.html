@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Tabla de informacion | inventario</title>
+</head>
+<body>
+        
+        <h2>lista de inventario</h2>
+        <form method="get" action="{{ url_for('inventario') }}">
+            <input type="text" name="search" placeholder="buscar productos al inventario..." value="{{ search_query }}">
+            <button type="submit">buscar</button>
+        </form>
+
+        <br>
+        <a class="ing" href="{{ url_for('index_inventario') }}">Ingresar productos al inventario</a>
+        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Cantidad en Stock</th>
+                    <th>Stock Minimo</th>
+                    <th>Stock Maximo</th>
+                    <th>Acciones</tr>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inventario in inventario %}
+                <tr>
+                    <td>{{ inventario[0] }}</td>
+                    <td>{{ inventario[1] }}</td>
+                    <td>{{ inventario[2] }}</td>
+                    <td>{{ inventario[3] }}</td>
+                    <td>{{ inventario[4] }}</td>
+                    <td>{{ inventario[5] }}</td>
+                    <td><a class="baa" href="{{ url_for('edit_inventario', id_inventario=inventario[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_inventario', id_inventario=inventario[0]) }}">Eliminar</a>
+                    </td>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
