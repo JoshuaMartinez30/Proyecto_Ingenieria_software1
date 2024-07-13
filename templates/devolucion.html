@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Devoluciones</title>
+</head>
+<body>
+    <h1>Lista de Devoluciones</h1>
+    <a class="ing" href="{{ url_for('index_devolucion') }}">Volver al Inicio</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Correo</th>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+        </tr>
+        {% for devolucion in devoluciones %}
+        <tr>
+            <td>{{ devolucion[0] }}</td>
+            <td>{{ devolucion[1] }}</td>
+            <td>{{ devolucion[2] }}</td>
+            <td>{{ devolucion[3] }}</td>
+            <td>{{ devolucion[4] }}</td>
+            <td>{{ devolucion[5] }}</td>
+            <td>
+                <a class="baa" href="{{ url_for('edit_devolucion', id=devolucion[0]) }}">Editar</a>
+                <a class="bee" href="{{ url_for('eliminar_devolucion', id=devolucion[0]) }}">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+</body>
+</html>

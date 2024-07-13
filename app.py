@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-#import tkinter as tk
-#from tkinter import messagebox
+import re
 import mysql.connector
 from mysql.connector import Error
 
@@ -39,15 +38,7 @@ def insert_user(nombre, categoria, precio):
     finally:
         cursor.close()
         connection.close()
-    #try:
-    #    cursor.execute(query, values)
-    #    connection.commit()
-    #    messagebox.showinfo("Success", "User inserted successfully")
-    #except Error as e:
-    #    messagebox.showerror("Error", f"The error '{e}' occurred")
-    #finally:
-    #    cursor.close()
-    #    connection.close()
+
 def get_producto():
     connection = create_connection()
     if connection is None:
@@ -135,6 +126,20 @@ def search_users(search_query):
         cursor.close()
         connection.close()
 
+def validate_inputs(nombre, categoria, precio):
+    if len(nombre) < 3 or len(nombre) > 20:
+        return False, 'El nombre debe tener entre 3 y 20 caracteres'
+    if len(categoria) < 3 or len(categoria) > 20:
+        return False, 'La categoría debe tener entre 3 y 20 caracteres'
+    if not nombre.isalpha() or not categoria.isalpha():
+        return False, 'El nombre y la categoría no deben contener números'
+    if not precio.isdigit() or float(precio) <= 0:
+        return False, 'El precio debe ser un número positivo'
+    if re.search(r'(.)\1{2,}', nombre) or re.search(r'(.)\1{2,}', categoria):
+        return False, 'No se permiten caracteres repetidos más de tres veces'
+    if re.search(r'[\W_]{2,}', nombre) or re.search(r'[\W_]{2,}', categoria):
+        return False, 'No se permiten signos repetidos'
+    return True, ''
 
 @app.route('/')
 def index():
@@ -142,31 +147,27 @@ def index():
 
 @app.route('/producto')
 def producto():
-    #producto = get_producto()
-    #return render_template('producto.html', producto = producto)
     search_query = request.args.get('search')
     if search_query:
         producto = search_users(search_query)
     else:
         producto = get_producto()
-    return render_template('producto.html', producto = producto, search_query=search_query)
+    return render_template('producto.html', producto=producto, search_query=search_query)
 
 @app.route('/submit', methods=['POST'])
 def submit():
-
     nombre = request.form['nombre']
     categoria = request.form['categoria']
     precio = request.form['precio']
 
     if not nombre or not categoria or not precio:
-        flash('All fields are required!')
+        flash('Todos los campos son obligatorios')
         return redirect(url_for('index'))
 
-    #try:
-    #    age = int(age)
-    #except ValueError:
-    #    flash('Age must be an integer!')
-    #    return redirect(url_for('index'))
+    valid, message = validate_inputs(nombre, categoria, precio)
+    if not valid:
+        flash(message)
+        return redirect(url_for('index'))
 
     if insert_user(nombre, categoria, precio):
         flash('Insertado exitosamente!')
@@ -184,18 +185,17 @@ def edit(Id_producto):
 
         if not nombre or not categoria or not precio:
             flash('Se necesitan todos los campos!')
-            return redirect(url_for('editar', Id_producto=Id_producto))
+            return redirect(url_for('edit', Id_producto=Id_producto))
 
-        #try:
-        #    age = int(age)
-        #except ValueError:
-        #    flash('Age must be an integer!')
-        #    return redirect(url_for('edit_user', user_id=user_id))
+        valid, message = validate_inputs(nombre, categoria, precio)
+        if not valid:
+            flash(message)
+            return redirect(url_for('edit', Id_producto=Id_producto))
 
         if update_user(Id_producto, nombre, categoria, precio):
             flash('Actualizado exitosamente!')
         else:
-            flash('Ocurrio un error al actualizar.')
+            flash('Ocurrió un error al actualizar.')
         
         return redirect(url_for('producto'))
 
@@ -208,17 +208,10 @@ def edit(Id_producto):
 @app.route('/eliminar/<int:Id_producto>', methods=['GET', 'POST'])
 def eliminar(Id_producto):
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        categoria = request.form['categoria']
-        precio = request.form['precio']
-
-        if not nombre or not categoria or not precio:
-            flash('Se requieren todos los campos!')
-            return redirect(url_for('eliminar', Id_producto=Id_producto))
         if delete_user(Id_producto):
             flash('Eliminado exitosamente!')
         else:
-            flash('Error al eliminar .')
+            flash('Error al eliminar.')
         return redirect(url_for('producto'))
 
     producto = get_producto_by_id(Id_producto)
@@ -227,38 +220,6 @@ def eliminar(Id_producto):
         return redirect(url_for('producto'))
     return render_template('eliminar.html', producto=producto)
 
-
-
 if __name__ == '__main__':
     app.run(debug=True)
 
-#def submit():
-#    nombre = nombre_entry.get()
-#    categoria = categoria_entry.get()
-#    precio = precio_entry.get()
-
-#    if not nombre or not categoria or not precio:
-#        messagebox.showwarning("Input Error", "All fields are required")
-#        return
-
-#    insert_user(nombre, categoria, precio)
-
-#app = tk.Tk()
-#app.title("User Data Entry")
-
-#tk.Label(app, text="Nombre:").grid(row=0, column=0, padx=10, pady=10)
-#nombre_entry = tk.Entry(app)
-#nombre_entry.grid(row=0, column=1, padx=10, pady=10)
-
-#tk.Label(app, text="Categoria:").grid(row=1, column=0, padx=10, pady=10)
-#categoria_entry = tk.Entry(app)
-#categoria_entry.grid(row=1, column=1, padx=10, pady=10)
-
-#tk.Label(app, text="Precio:").grid(row=2, column=0, padx=10, pady=10)
-#precio_entry = tk.Entry(app)
-#precio_entry.grid(row=2, column=1, padx=10, pady=10)
-
-#submit_button = tk.Button(app, text="Submit", command=submit)
-#submit_button.grid(row=4, columnspan=2, pady=20)
-
-#app.mainloop()

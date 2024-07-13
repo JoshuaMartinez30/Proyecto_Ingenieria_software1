@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Editar Devolución</title>
+</head>
+<body>
+    <h1>Editar Devolución</h1>
+    <form action="{{ url_for('edit_devolucion', id=devolucion[0]) }}" method="post">
+        <label for="correo">Correo:</label>
+        <input type="text" id="correo" name="correo" value="{{ devolucion[1] }}"><br>
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" value="{{ devolucion[2] }}"><br>
+        <label for="estado">Estado:</label>
+        <select id="estado" name="estado">
+            <option value="malo" {% if devolucion[3] == 'malo' %}selected{% endif %}>Malo</option>
+            <option value="medio" {% if devolucion[3] == 'medio' %}selected{% endif %}>Medio</option>
+            <option value="bueno" {% if devolucion[3] == 'bueno' %}selected{% endif %}>Bueno</option>
+        </select><br>
+        <label for="descripcion">Descripción:</label>
+        <input type="text" id="descripcion" name="descripcion" value="{{ devolucion[4] }}"><br>
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" value="{{ devolucion[5] }}"><br>
+        <input type="submit" value="Actualizar">
+    </form>
+    <a href="{{ url_for('devolucion') }}">Volver a la lista de devoluciones</a>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+</body>
+</html>

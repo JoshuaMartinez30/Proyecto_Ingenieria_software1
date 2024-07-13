@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuraciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Lista de Configuraciones</h1>
+
+    <form method="GET" action="{{ url_for('configuraciones') }}">
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar Configuración...">
+        <button type="submit">Buscar</button>
+    </form>
+
+    <a class="ing" href="{{ url_for('index_configuraciones') }}">Ingresar Datos de Configuración</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre de Configuración</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for configuracion in configuraciones %}
+                <tr>
+                    <td>{{ configuracion[1] }}</td>
+                    <td>{{ configuracion[2] }}</td>
+                    <td>{{ configuracion[3] }}</td>
+                    <td>
+                        <a class="baa" href="{{ url_for('edit_configuraciones', id_configuracion=configuracion[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_configuraciones', id_configuracion=configuracion[0]) }}">Eliminar</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar usuarios</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar usuarios</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('eliminar_usuarios', id_usuario=usuarios[0]) }}" method="post">
+            <label for="name">Primer Nombre:</label>
+            <input type="text" id="primer_nombre" name="primer_nombre" value="{{ usuarios[1] }}" readonly><br><br>
+            <label for="gender">Primer Apellido:</label>
+            <input type="text" id="primer_apellido" name="primer_apellido" value="{{ usuarios[2] }}" readonly><br><br>
+            <label for="nationality">Correo:</label>
+            <input type="text" id="correo" name="correo" value="{{ usuarios[3] }}" readonly><br><br>
+            <label for="nationality">Contraseña:</label>
+            <input type="text" id="password" name="password" value="{{ usuarios[4] }}" readonly><br><br>
+            <label for="select_option">Usuario activo:</label>
+            <select id="usuario_activo" name="usuario_activo" value="{{ usuarios[5] }}" required><br><br>
+              <option value="1">1</option>
+              <option value="0">0</option>
+            </select><br><br>
+            <form action="{{ url_for('eliminar_usuarios', id_usuario=usuarios[0]) }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('estas seguro de eliminar este producto del usuarios? {{usuarios[1]}}');">Eliminar</button>
+        </form>
+        
+        <br>
+        <a href="{{ url_for('usuarios') }}">lista de usuarios</a>
+    </div>
+</body>
+</html>

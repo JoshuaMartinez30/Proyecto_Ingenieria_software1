@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Encuestas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Lista de Encuestas</h1>
+
+    <form method="GET" action="{{ url_for('encuestas') }}">
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar Encuesta...">
+        <button type="submit">Buscar</button>
+    </form>
+
+    <a class="ing" href="{{ url_for('index_encuestas') }}">Ingresar Datos de Encuesta</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Puntuación</th>
+                <th>Comentarios</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for encuesta in encuestas %}
+                <tr>
+                    <td>{{ encuesta[1] }}</td>
+                    <td>{{ encuesta[2] }}</td>
+                    <td>{{ encuesta[3] }}</td>
+                    <td>{{ encuesta[4] }}</td>
+                    <td>
+                        <a class="baa" href="{{ url_for('edit_encuestas', id_encuesta=encuesta[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_encuestas', id_encuesta=encuesta[0]) }}">Eliminar</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

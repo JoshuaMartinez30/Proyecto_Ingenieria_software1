@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Editar promocion</title>
+    <script>
+        function validateForm() {
+            const nombre = document.getElementById('nombre').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const valor = document.getElementById('valor').value;
+            const fechaInicio = document.getElementById('fecha_inicio').value;
+            const fechaFinal = document.getElementById('fecha_final').value;
+            const estadoPromocion = document.getElementById('estado_promocion').value;
+
+            const today = new Date().toISOString().split('T')[0];
+            const startDate = new Date(fechaInicio);
+            const endDate = new Date(fechaFinal);
+
+            // Validaciones generales
+            const hasRepeatedChars = (str) => /(.)\1\1/.test(str);
+            const hasSigns = (str) => /[^a-zA-Z0-9\s]/.test(str);
+            const hasNumbers = (str) => /\d/.test(str);
+            const hasLetters = (str) => /[a-zA-Z]/.test(str);
+
+            if (!nombre || !descripcion || !valor || !fechaInicio || !fechaFinal || !estadoPromocion) {
+                alert('Todos los campos son obligatorios');
+                return false;
+            }
+            if (nombre.length < 3 || nombre.length > 15 || descripcion.length < 3 || descripcion.length > 15) {
+                alert('El nombre y la descripción deben tener entre 3 y 15 caracteres');
+                return false;
+            }
+            if (hasRepeatedChars(nombre) || hasRepeatedChars(descripcion)) {
+                alert('No se permiten tres letras repetidas consecutivas');
+                return false;
+            }
+            if (hasSigns(nombre) || hasSigns(descripcion)) {
+                alert('No se permiten signos');
+                return false;
+            }
+            if (hasNumbers(nombre) || hasNumbers(descripcion) || (!/^\d+(\.\d+)?$/.test(valor))) {
+                alert('No se permiten números en campos de texto y viceversa');
+                return false;
+            }
+            if (fechaInicio < today) {
+                alert('La fecha de inicio no puede ser antes del día actual');
+                return false;
+            }
+            if (endDate <= startDate) {
+                alert('La fecha final debe ser después de la fecha de inicio');
+                return false;
+            }
+            if ((endDate - startDate) / (1000 * 60 * 60 * 24) < 7) {
+                alert('La fecha final debe ser al menos 7 días después de la fecha de inicio');
+                return false;
+            }
+
+            return true;
+        }
+
+        function toggleFields() {
+            const estadoPromocion = document.getElementById('estado_promocion').value;
+            const fields = ['nombre', 'descripcion', 'tipo', 'valor', 'fecha_inicio', 'fecha_final'];
+            fields.forEach(field => {
+                document.getElementById(field).disabled = (estadoPromocion === 'Inactivo');
+            });
+        }
+    </script>
+</head>
+<body onload="toggleFields()">
+    <div class="container">
+        <h2>Editar promocion</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('edit_promocion', id_promocion=promocion[0]) }}" method="post" onsubmit="return validateForm()">
+            <label for="name">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ promocion[1] }}" required><br><br>
+            <label for="gender">Descripcion:</label>
+            <input type="text" id="descripcion" name="descripcion" value="{{ promocion[2] }}" required><br><br>
+            <label for="select_option">Tipo:</label>
+            <select id="tipo" name="tipo" value="{{ promocion[3] }}" required><br><br>
+              <option value="promocion">Promocion</option>
+              <option value="descuento">Descuento</option>
+            </select><br><br>
+            <label for="nationality">Valor:</label>
+            <input type="text" id="valor" name="valor" value="{{ promocion[4] }}" required><br><br>
+            <label for="nationality">Fecha Inicio:</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ promocion[5] }}" required><br><br>
+            <label for="nationality">Fecha Final:</label>
+            <input type="date" id="fecha_final" name="fecha_final" value="{{ promocion[6] }}" required><br><br>
+            <label for="select_option">Estado:</label>
+            <select id="estado_promocion" name="estado_promocion" onchange="toggleFields()" required><br><br>
+              <option value="Activo" {% if promocion[7] == 'Activo' %} selected {% endif %}>Activo</option>
+              <option value="Inactivo" {% if promocion[7] == 'Inactivo' %} selected {% endif %}>Inactivo</option>
+            </select><br><br>
+            <input type="submit" value="Update">
+        </form>
+        
+        <br>
+        <a href="{{ url_for('promocion') }}">lista de promocion</a>
+    </div>
+</body>
+</html>

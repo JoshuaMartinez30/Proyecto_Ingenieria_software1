@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Transacciones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Listado de Transacciones</h1>
+    <form method="GET" action="{{ url_for('transacciones') }}">
+        <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
+        <button type="submit">Buscar</button>
+    </form>
+    <a class="ing" href="{{ url_for('index_transaccion') }}">Regresar</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Cliente</th>
+                <th>Correo</th>
+                <th>Descripción</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaccion in transacciones %}
+            <tr>
+                <td>{{ transaccion[0] }}</td>
+                <td>{{ transaccion[1] }}</td>
+                <td>{{ transaccion[2] }}</td>
+                <td>{{ transaccion[3] }}</td>
+                <td>{{ transaccion[4] }}</td>
+                <td>{{ transaccion[5] }}</td>
+                <td>
+                    <a class="baa" href="{{ url_for('edit_transaccion', id_transaccion=transaccion[0]) }}">Editar</a>
+                    <a class="bee" href="{{ url_for('eliminar_transaccion', id_transaccion=transaccion[0]) }}">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+</body>
+</html>

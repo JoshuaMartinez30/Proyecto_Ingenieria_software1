@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar Devolución</title>
+</head>
+<body>
+    <h1>Eliminar Devolución</h1>
+    <p>¿Estás seguro de que deseas eliminar esta devolución?</p>
+    <form action="{{ url_for('eliminar_devolucion', id=devolucion[0]) }}" method="post">
+        <input type="submit" value="Eliminar">
+    </form>
+    <a href="{{ url_for('devolucion') }}">Volver a la lista de devoluciones</a>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+</body>
+</html>

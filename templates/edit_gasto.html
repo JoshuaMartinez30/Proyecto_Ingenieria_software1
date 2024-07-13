@@ -18,7 +18,7 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('edit', id_gasto=gasto[0]) }}" method="post">
+        <form id="editForm" action="{{ url_for('edit', id_gasto=gasto[0]) }}" method="post">
             <label for="fecha">Fecha:</label>
             <input type="date" id="fecha" name="fecha" value="{{ gasto[1] }}" required><br><br>
             <label for="monto">Monto:</label>
@@ -30,5 +30,15 @@
         <br>
         <a href="{{ url_for('gastos') }}">Lista de Gastos</a>
     </div>
+
+    <script>
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            var montoInput = document.getElementById('monto');
+            if (parseFloat(montoInput.value) <= 0) {
+                alert('El monto debe ser mayor a cero.');
+                event.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

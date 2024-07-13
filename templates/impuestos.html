@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Tabla de informacion | impuestos</title>
+</head>
+<body>
+        
+        <h2>lista de impuestos</h2>
+        <form method="get" action="{{ url_for('impuestos') }}">
+            <input type="text" name="search" placeholder="buscar productos al impuestos..." value="{{ search_query }}">
+            <button type="submit">buscar</button>
+        </form>
+
+        <br>
+        <a class="ing" href="{{ url_for('index_impuestos') }}">Ingresar impuestos</a>
+        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre del producto</th>
+                    <th>Precio base</th>
+                    <th>Tasa impuesto</th>
+                    <th>Impuesto calculado</th>
+                    <th>Precio Final</th>
+                    <th>Acciones</tr>
+                </tr>
+            </thead>
+            <tbody>
+                {% for impuestos in impuestos %}
+                <tr>
+                    <td>{{ impuestos[0] }}</td>
+                    <td>{{ impuestos[1] }}</td>
+                    <td>{{ impuestos[2] }}</td>
+                    <td>{{ impuestos[3] }}</td>
+                    <td>{{ impuestos[4] }}</td>
+                    <td>{{ impuestos[5] }}</td>
+                    <td><a class="baa" href="{{ url_for('edit_impuestos', id_impuestos=impuestos[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_impuestos', id_impuestos=impuestos[0]) }}">Eliminar</a>
+                    </td>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

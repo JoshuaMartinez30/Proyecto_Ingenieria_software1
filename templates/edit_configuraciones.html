@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar datos de Configuración</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Editar datos de Configuración</h1>
+    <form method="POST" action="{{ url_for('edit_configuraciones', id_configuracion=configuracion[0]) }}">
+        <label>Nombre de Configuración:</label>
+        <input type="text" name="nombre_de_configuracion" value="{{ configuracion[1] }}">
+        <label>Descripción:</label>
+        <input type="text" name="descripcion" value="{{ configuracion[2] }}">
+        <label>Estado Config:</label>
+        <input type="text" name="estado_config" value="{{ configuracion[3] }}">
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <a href="{{ url_for('configuraciones') }}">Lista de Configuraciones</a>
+</body>
+</html>

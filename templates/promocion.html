@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Tabla de informacion | promocion</title>
+</head>
+<body>
+        
+        <h2>lista de promocion</h2>
+        <form method="get" action="{{ url_for('promocion') }}">
+            <input type="text" name="search" placeholder="buscar la promocion..." value="{{ search_query }}">
+            <button type="submit">buscar</button>
+        </form>
+
+        <br>
+        <a class="ing" href="{{ url_for('index_promocion') }}">Ingresar la promocion</a>
+        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Final</th>
+                    <th>Estado</th>
+                    <th>Acciones</tr>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promocion in promocion %}
+                <tr>
+                    <td>{{ promocion[0] }}</td>
+                    <td>{{ promocion[1] }}</td>
+                    <td>{{ promocion[2] }}</td>
+                    <td>{{ promocion[3] }}</td>
+                    <td>{{ promocion[4] }}</td>
+                    <td>{{ promocion[5] }}</td>
+                    <td>{{ promocion[6] }}</td>
+                    <td>{{ promocion[7] }}</td>
+                    <td><a class="baa" href="{{ url_for('edit_promocion', id_promocion=promocion[0]) }}">Editar</a>
+                        <a class="bee" href="{{ url_for('eliminar_promocion', id_promocion=promocion[0]) }}">Eliminar</a>
+                    </td>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

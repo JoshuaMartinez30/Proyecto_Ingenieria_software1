@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Tickets</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Listado de Tickets</h1>
+    <form method="GET" action="{{ url_for('tickets') }}">
+        <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
+        <button type="submit">Buscar</button>
+    </form>
+    <a class="ing" href="{{ url_for('index_ticket') }}">Regresar</a>
+    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Cliente</th>
+                <th>Correo</th>
+                <th>Asunto</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>{{ ticket[0] }}</td>
+                <td>{{ ticket[1] }}</td>
+                <td>{{ ticket[2] }}</td>
+                <td>{{ ticket[3] }}</td>
+                <td>{{ ticket[4] }}</td>
+                <td>{{ ticket[5] }}</td>
+                <td>
+                    <a class="baa" href="{{ url_for('edit_ticket', id_ticket=ticket[0]) }}">Editar</a>
+                    <a class="bee" href="{{ url_for('eliminar_ticket', id_ticket=ticket[0]) }}">Eliminar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+</body>
+</html>
+

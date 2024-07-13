@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
+import re
 
 app_proveedores = Flask(__name__)
 app_proveedores.secret_key = 'your_secret_key'
@@ -37,7 +38,7 @@ def insert_user(Nombre_del_proveedor, Contacto, Producto_Servicio, Historial_de_
     finally:
         cursor.close()
         connection.close()
- 
+
 def get_proveedor():
     connection = create_connection()
     if connection is None:
@@ -130,6 +131,22 @@ def search_users(search_query):
         cursor.close()
         connection.close()
 
+def validate_input(field_value, field_type='text'):
+    if not field_value:
+        return False
+    if field_type == 'text':
+        if len(field_value) < 3 or len(field_value) > 20:
+            return False
+        if re.search(r'\d', field_value):
+            return False
+        if re.search(r'(.)\1{2,}', field_value):
+            return False
+        if all(char in "!?@#$%^&*()_+-=[]{};':\",.<>/?\\" for char in field_value):
+            return False
+    elif field_type == 'number':
+        if not field_value.isdigit() or len(field_value) > 4:
+            return False
+    return True
 
 @app_proveedores.route('/')
 def index_proveedores():
@@ -146,7 +163,6 @@ def proveedores():
 
 @app_proveedores.route('/submit', methods=['POST'])
 def submit():
-
     Nombre_del_proveedor = request.form['Nombre_del_proveedor']
     Contacto = request.form['Contacto']
     Producto_Servicio = request.form['Producto_Servicio']
@@ -154,16 +170,16 @@ def submit():
     id_pedido = request.form['id_pedido']
     id_marca = request.form['id_marca']
 
-
-    if not Nombre_del_proveedor or not Contacto or not Producto_Servicio or not Historial_de_desempeño or not id_pedido or not id_marca:
-        flash('Todos los campos son necesarios')
+    if not all(validate_input(field, 'text') for field in [Nombre_del_proveedor, Contacto, Producto_Servicio, Historial_de_desempeño]) or \
+       not all(validate_input(field, 'number') for field in [id_pedido, id_marca]):
+        flash('OJO Todos los campos son necesarios. Los campos de texto deben tener entre 3 y 20 caracteres, no contener números, no repetir la misma letra tres veces seguidas ni contener solo signos. Los campos id_pedido e id_marca deben ser números y tener máximo 4 dígitos.')
         return redirect(url_for('index_proveedores'))
 
     if insert_user(Nombre_del_proveedor, Contacto, Producto_Servicio, Historial_de_desempeño, id_pedido, id_marca):
         flash('User inserted successfully!')
     else:
         flash('An error occurred while inserting the user.')
-    
+
     return redirect(url_for('index_proveedores'))
 
 @app_proveedores.route('/edit/<int:id_proveedor>', methods=['GET', 'POST'])
@@ -176,15 +192,16 @@ def edit_proveedores(id_proveedor):
         id_pedido = request.form['id_pedido']
         id_marca = request.form['id_marca']
 
-        if not Nombre_del_proveedor or not Contacto or not Producto_Servicio or not Historial_de_desempeño or not id_pedido or not id_marca:
-            flash('All fields are required!')
+        if not all(validate_input(field, 'text') for field in [Nombre_del_proveedor, Contacto, Producto_Servicio, Historial_de_desempeño]) or \
+           not all(validate_input(field, 'number') for field in [id_pedido, id_marca]):
+            flash('Todos los campos son necesarios. Los campos de texto deben tener entre 3 y 20 caracteres, no contener números, no repetir la misma letra tres veces seguidas ni contener solo signos. Los campos id_pedido e id_marca deben ser números y tener máximo 4 dígitos.')
             return redirect(url_for('edit_proveedores', id_proveedor=id_proveedor))
 
         if update_user(id_proveedor, Nombre_del_proveedor, Contacto, Producto_Servicio, Historial_de_desempeño, id_pedido, id_marca):
             flash('User updated successfully!')
         else:
             flash('An error occurred while updating the user.')
-        
+
         return redirect(url_for('proveedores'))
 
     proveedores = get_proveedor_by_id(id_proveedor)
@@ -192,7 +209,6 @@ def edit_proveedores(id_proveedor):
         flash('Proveedor not found!')
         return redirect(url_for('proveedores'))
     return render_template('edit_proveedores.html', proveedores=proveedores)
-
 
 @app_proveedores.route('/eliminar/<int:id_proveedor>', methods=['GET', 'POST'])
 def eliminar_proveedores(id_proveedor):
@@ -211,4 +227,3 @@ def eliminar_proveedores(id_proveedor):
 
 if __name__ == '__main__':
     app_proveedores.run(debug=True, port=5005)
-

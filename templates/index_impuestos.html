@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Ingrese su producto al impuestos</title>
+    <script>
+        function validateForm() {
+            const nombreProducto = document.getElementById('nombre_producto').value;
+            const precioBase = document.getElementById('precio_base').value;
+            const tasaImpuesto = document.getElementById('tasa_impuesto').value;
+            const impuestoCalculado = document.getElementById('impuesto_calculado').value;
+            const precioFinal = document.getElementById('precio_final').value;
+            
+            // No campos en blancos
+            if (!nombreProducto || !precioBase || !tasaImpuesto || !impuestoCalculado || !precioFinal) {
+                alert('Todos los campos son obligatorios.');
+                return false;
+            }
+            
+            // No tres letras repetidas
+            const regexTresLetrasRepetidas = /(.)\1\1/;
+            if (regexTresLetrasRepetidas.test(nombreProducto)) {
+                alert('El nombre del producto no debe contener tres letras repetidas consecutivas.');
+                return false;
+            }
+            
+            // No signos
+            const regexSignos = /[^a-zA-Z0-9\s]/;
+            if (regexSignos.test(nombreProducto)) {
+                alert('El nombre del producto o los campos que solo se solicitan precios o numeros no puede ingresar signos.');
+                return false;
+            }
+            
+            // No números en campos de texto y no letras en campos de números
+            const regexNumeros = /\d/;
+            if (regexNumeros.test(nombreProducto)) {
+                alert('El nombre del producto no debe contener números.');
+                return false;
+            }
+            
+            const regexLetras = /[a-zA-Z]/;
+            if (regexLetras.test(precioBase) || regexLetras.test(tasaImpuesto) || regexLetras.test(impuestoCalculado) || regexLetras.test(precioFinal)) {
+                alert('Los campos de precio base, tasa de impuesto, impuesto calculado y precio final no deben contener letras.');
+                return false;
+            }
+            
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Ingrese impuestos</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post" onsubmit="return validateForm()">
+            <label for="nombre_producto">Nombre del producto:</label>
+            <input type="text" id="nombre_producto" name="nombre_producto" required pattern="[A-Za-z]{3,20}" title="Solo letras, mínimo 3 y máximo 20 caracteres"><br><br>
+            <label for="precio_base">Precio Base:</label>
+            <input type="text" id="precio_base" name="precio_base" required><br><br>
+            <label for="tasa_impuesto">Tasa impuesto:</label>
+            <input type="text" id="tasa_impuesto" name="tasa_impuesto" required><br><br>
+            <label for="impuesto_calculado">Impuesto calculado:</label>
+            <input type="text" id="impuesto_calculado" name="impuesto_calculado" required><br><br>
+            <label for="precio_final">Precio Final:</label>
+            <input type="text" id="precio_final" name="precio_final" required><br><br>
+            <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a href="{{ url_for('impuestos') }}">Lista de impuestos</a>
+    </div>
+</body>
+</html>

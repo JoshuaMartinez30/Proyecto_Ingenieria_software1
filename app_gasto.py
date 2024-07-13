@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
+import re
 
 app_gasto = Flask(__name__)
 app_gasto.secret_key = 'your_secret_key'
@@ -126,6 +127,26 @@ def submit():
         flash('Todos los campos son requeridos.')
         return redirect(url_for('index'))
 
+    # Verificar que monto sea mayor a cero
+    if float(monto) <= 0:
+        flash('Monto debe ser mayor a cero.')
+        return redirect(url_for('index'))
+
+    # Verificar repetición de la misma letra
+    if re.match(r'^(.)\1*$', descripcion):
+        flash('Descripción no puede contener repetición de la misma letra.')
+        return redirect(url_for('index'))
+
+    # Verificar que descripción no contenga solo signos
+    if re.match(r'^[!-/:-@[-`{-~]+$', descripcion):
+        flash('Descripción no puede contener solo signos.')
+        return redirect(url_for('index'))
+
+    # Verificar que descripción no contenga signos
+    if re.search(r'[!-/:-@[-`{-~]', descripcion):
+        flash('Descripción no puede contener signos.')
+        return redirect(url_for('index'))
+
     if insert_gasto(fecha, monto, descripcion):
         flash('Gasto insertado exitosamente.')
     else:
@@ -142,6 +163,30 @@ def edit(id_gasto):
 
         if not fecha or not monto or not descripcion:
             flash('Todos los campos son requeridos.')
+            return redirect(url_for('edit', id_gasto=id_gasto))
+
+        # Verificar que monto sea mayor a cero
+        if float(monto) <= 0:
+            flash('Monto debe ser mayor a cero.')
+            return redirect(url_for('edit', id_gasto=id_gasto))
+
+        # Verificar repetición de la misma letra
+        if re.match(r'^(.)\1*$', descripcion):
+            flash('Descripción no puede contener repetición de la misma letra.')
+            return redirect(url_for('edit', id_gasto=id_gasto))
+
+        # Verificar que descripción no contenga solo signos
+        if re.match(r'^[!-/:-@[-`{-~]+$', descripcion):
+            flash('Descripción no puede contener solo signos.')
+            return redirect(url_for('edit', id_gasto=id_gasto))
+        
+        if re.match(r'^[j]+$', descripcion):
+            flash('Dehshsh')
+            return redirect(url_for('edit', id_gasto=id_gasto))
+
+        # Verificar que descripción no contenga signos
+        if re.search(r'[!-/:-@[-`{-~]', descripcion):
+            flash('Descripción no puede contener signos.')
             return redirect(url_for('edit', id_gasto=id_gasto))
 
         if update_gasto(id_gasto, fecha, monto, descripcion):

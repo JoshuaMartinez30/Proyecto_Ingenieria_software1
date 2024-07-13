@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar datos de Encuestas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Editar datos de Encuesta</h1>
+    <form method="POST" action="{{ url_for('edit_encuestas', id_encuesta=encuesta[0]) }}">
+        <label>Cliente:</label>
+        <input type="text" name="cliente" value="{{ encuesta[1] }}">
+        <label>Fecha:</label>
+        <input type="text" name="fecha" value="{{ encuesta[2] }}">
+        <label>Puntuacion:</label>
+        <input type="text" name="puntuacion" value="{{ encuesta[3] }}">
+        <label>Comentarios:</label>
+        <input type="text" name="comentarios" value="{{ encuesta[4] }}">
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <a href="{{ url_for('encuestas') }}">Lista de datos de Encuestas</a>
+</body>
+</html>

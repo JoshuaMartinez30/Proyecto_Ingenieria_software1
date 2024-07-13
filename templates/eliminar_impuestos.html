@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar impuestos</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar impuestos</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('eliminar_impuestos', id_impuestos=impuestos[0]) }}" method="post">
+            <label for="name">Nombre del producto:</label>
+            <input type="text" id="nombre_producto" name="nombre_producto" value="{{ impuestos[1] }}" readonly><br><br>
+            <label for="gender">Precio base:</label>
+            <input type="text" id="precio_base" name="precio_base" value="{{ impuestos[2] }}" readonly><br><br>
+            <label for="nationality">Tasa impuesto:</label>
+            <input type="text" id="tasa_impuesto" name="tasa_impuesto" value="{{ impuestos[3] }}" readonly><br><br>
+            <label for="nationality">impuesto calculado:</label>
+            <input type="text" id="impuesto_calculado" name="impuesto_calculado" value="{{ impuestos[4] }}" readonly><br><br>
+            <label for="nationality">Precio Final:</label>
+            <input type="text" id="precio_final" name="precio_final" value="{{ impuestos[5] }}" readonly><br><br>
+            <form action="{{ url_for('eliminar_impuestos', id_impuestos=impuestos[0]) }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('estas seguro de eliminar este producto del impuestos? {{impuestos[1]}}');">Eliminar</button>
+        </form>
+        
+        <br>
+        <a href="{{ url_for('impuestos') }}">lista de impuestos</a>
+    </div>
+</body>
+</html>
