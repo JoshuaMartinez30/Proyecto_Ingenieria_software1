@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Lista de Empleados</title>
 </head>
 <body>
-    <h2>Lista de empleados</h2>
-    <form method="get" action="{{ url_for('empleados') }}">
-        <input type="text" name="search" placeholder="Buscar empleados..." value="{{ search_query }}">
+    <h1>Lista de Empleados</h1>
+    <!-- Formulario de búsqueda -->
+    <form method="GET" action="{{ url_for('empleados') }}">
+        <select name="search_criteria">
+            <option value="Nombre" {% if search_criteria == 'Nombre' %}selected{% endif %}>Nombre</option>
+            <option value="Apellido" {% if search_criteria == 'Apellido' %}selected{% endif %}>Apellido</option>
+            <option value="Puesto_de_Trabajo" {% if search_criteria == 'Puesto_de_Trabajo' %}selected{% endif %}>Puesto de Trabajo</option>
+            <option value="Sucursal" {% if search_criteria == 'Sucursal' %}selected{% endif %}>Sucursal</option>
+        </select>
+        <input type="text" name="search_query" value="{{ search_query if search_query is not none else '' }}" placeholder="Buscar...">
         <button type="submit">Buscar</button>
     </form>
 
-    <br>
-    <a class="ing"  href="{{ url_for('index_empleados') }}">Ingresar empleados</a>
-    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <a class="button-link ing" href="{{ url_for('index_empleados') }}">Ingresar empleados</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
 
     <table>
         <thead>
@@ -46,12 +53,31 @@
                 <td>{{ empleado[7] }}</td>
                 <td>{{ empleado[8] }}</td>
                 <td>{{ empleado[9] }}</td>
-                <td><a class="btn" href="{{ url_for('edit_empleado', id_empleado=empleado[0]) }}">Editar</a>
-                    <a class="btn" href="{{ url_for('eliminar_empleado', id_empleado=empleado[0]) }}">Eliminar</a>
+                <td>
+                    <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_empleado', id_empleado=empleado[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                    <a class="button-link bee" href="{{ url_for('eliminar_empleado', id_empleado=empleado[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('empleados', page=page-1, search=search_query) }}">&laquo; Anterior</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('empleados', page=p, search=search_query) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="{{ url_for('empleados', page=page+1, search=search_query) }}">Siguiente &raquo;</a>
+        {% endif %}
+    </div>
+
+    <script>
+        function openEditWindow(url) {
+            window.open(url, "_blank", "width=600,height=400");
+        }
+    </script>
 </body>
 </html>

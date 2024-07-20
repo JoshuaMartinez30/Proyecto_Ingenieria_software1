@@ -39,19 +39,23 @@ def insert_user(nombre, categoria, precio):
         cursor.close()
         connection.close()
 
-def get_producto():
+
+def get_producto(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM producto"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM producto LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         producto = cursor.fetchall()
-        return producto
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_producto = cursor.fetchone()[0]
+        return producto, total_producto
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -108,20 +112,25 @@ def delete_user(Id_producto):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+
+def search_users(search_criteria, search_query, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM producto WHERE nombre LIKE %s OR categoria LIKE %s OR precio LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    query = f"SELECT * FROM producto WHERE {search_criteria} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
     try:
         cursor.execute(query, values)
         producto = cursor.fetchall()
-        return producto
+        count_query = f"SELECT COUNT(*) FROM producto WHERE {search_criteria} LIKE %s"
+        cursor.execute(count_query, (f'%{search_query}%',))
+        total_count = cursor.fetchone()[0]
+        return producto, total_count
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -147,12 +156,19 @@ def index():
 
 @app.route('/producto')
 def producto():
-    search_query = request.args.get('search')
-    if search_query:
-        producto = search_users(search_query)
+    search_criteria = request.args.get('search_criteria')
+    search_query = request.args.get('search_query')
+    page = int(request.args.get('page', 1))
+    per_page = 5
+
+    if search_criteria and search_query:
+        producto, total_count = search_users(search_criteria, search_query, page, per_page)
     else:
-        producto = get_producto()
-    return render_template('producto.html', producto=producto, search_query=search_query)
+        producto, total_count = get_producto(page, per_page)
+    
+    total_pages = (total_count + per_page - 1) // per_page
+
+    return render_template('producto.html', producto=producto, search_criteria=search_criteria, search_query=search_query, page=page, total_pages=total_pages)
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -221,5 +237,4 @@ def eliminar(Id_producto):
     return render_template('eliminar.html', producto=producto)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.run(debug=True,port=5017)

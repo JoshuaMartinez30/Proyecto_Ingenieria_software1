@@ -39,22 +39,26 @@ def insert_user(Nombre_del_proveedor, Contacto, Producto_Servicio, Historial_de_
         cursor.close()
         connection.close()
 
-def get_proveedor():
+def get_proveedor(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM proveedores"
+    offset = (page - 1) * per_page
+    query = "SELECT * FROM proveedores LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         proveedores = cursor.fetchall()
-        return proveedores
+        cursor.execute("SELECT COUNT(*) FROM proveedores")
+        total_count = cursor.fetchone()[0]
+        return proveedores, total_count
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
 
 def get_proveedor_by_id(id_proveedor):
     connection = create_connection()
@@ -113,23 +117,29 @@ def delete_user(id_proveedor):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+def search_users(search_criteria, search_query, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM proveedores WHERE Nombre_del_proveedor LIKE %s"
-    values = (f'%{search_query}%',)
+    offset = (page - 1) * per_page
+    query = f"SELECT * FROM proveedores WHERE {search_criteria} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
     try:
         cursor.execute(query, values)
         proveedores = cursor.fetchall()
-        return proveedores
+        count_query = f"SELECT COUNT(*) FROM proveedores WHERE {search_criteria} LIKE %s"
+        cursor.execute(count_query, (f'%{search_query}%',))
+        total_count = cursor.fetchone()[0]
+        return proveedores, total_count
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
+
 
 def validate_input(field_value, field_type='text'):
     if not field_value:
@@ -154,12 +164,21 @@ def index_proveedores():
 
 @app_proveedores.route('/proveedores')
 def proveedores():
-    search_query = request.args.get('search')
-    if search_query:
-        proveedores = search_users(search_query)
+    search_criteria = request.args.get('search_criteria')
+    search_query = request.args.get('search_query')
+    page = int(request.args.get('page', 1))
+    per_page = 10
+
+    if search_criteria and search_query:
+        proveedores, total_count = search_users(search_criteria, search_query, page, per_page)
     else:
-        proveedores = get_proveedor()
-    return render_template('proveedores.html', proveedores=proveedores, search_query=search_query)
+        proveedores, total_count = get_proveedor(page, per_page)
+    
+    total_pages = (total_count + per_page - 1) // per_page
+
+    return render_template('proveedores.html', proveedores=proveedores, search_criteria=search_criteria, search_query=search_query, page=page, total_pages=total_pages)
+
+
 
 @app_proveedores.route('/submit', methods=['POST'])
 def submit():

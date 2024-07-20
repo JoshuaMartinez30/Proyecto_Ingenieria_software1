@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Tabla de informacion | promocion</title>
 </head>
@@ -15,8 +16,8 @@
         </form>
 
         <br>
-        <a class="ing" href="{{ url_for('index_promocion') }}">Ingresar la promocion</a>
-        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <a class="button-link ing" href="{{ url_for('index_promocion') }}">Ingresar la promocion</a>
+        <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
         <table>
             <thead>
                 <tr>
@@ -42,12 +43,23 @@
                     <td>{{ promocion[5] }}</td>
                     <td>{{ promocion[6] }}</td>
                     <td>{{ promocion[7] }}</td>
-                    <td><a class="baa" href="{{ url_for('edit_promocion', id_promocion=promocion[0]) }}">Editar</a>
-                        <a class="bee" href="{{ url_for('eliminar_promocion', id_promocion=promocion[0]) }}">Eliminar</a>
+                    <td><a class="button-link baa" href="{{ url_for('edit_promocion', id_promocion=promocion[0]) }}">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                        <a class="button-link bee" href="{{ url_for('eliminar_promocion', id_promocion=promocion[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                     </td>
                 {% endfor %}
             </tbody>
         </table>
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('promocion', page=page-1, search=search_query) }}">&laquo; Anterior</a>
+            {% endif %}
+            {% for p in range(1, total_pages + 1) %}
+            <a href="{{ url_for('promocion', page=p, search=search_query) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+            {% endfor %}
+            {% if page < total_pages %}
+            <a href="{{ url_for('promocion', page=page+1, search=search_query) }}">Siguiente &raquo;</a>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>

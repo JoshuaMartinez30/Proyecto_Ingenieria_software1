@@ -24,7 +24,7 @@ def create_connection():
 def insert_ticket(nombre_cliente, correo, asunto, estado, fecha):
     connection = create_connection()
     if connection is None:
-        return
+        return False
     cursor = connection.cursor()
     query = "INSERT INTO ticket (nombre_cliente, correo, asunto, estado, fecha) VALUES (%s, %s, %s, %s, %s)"
     values = (nombre_cliente, correo, asunto, estado, fecha)
@@ -39,19 +39,22 @@ def insert_ticket(nombre_cliente, correo, asunto, estado, fecha):
         cursor.close()
         connection.close()
 
-def get_tickets():
+def get_tickets(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM ticket"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM ticket LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         tickets = cursor.fetchall()
-        return tickets
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_tickets = cursor.fetchone()[0]
+        return tickets, total_tickets
     except Error as e:
         print(f"Error '{e}' ocurrió")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -108,20 +111,70 @@ def delete_ticket(id_ticket):
         cursor.close()
         connection.close()
 
-def search_tickets(search_query):
+def search_tickets_by_field(field, value, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM ticket WHERE nombre_cliente LIKE %s OR correo LIKE %s OR asunto LIKE %s OR estado LIKE %s OR fecha LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+
+    # Usar una coincidencia exacta para una búsqueda precisa
+    query = f"""
+    SELECT SQL_CALC_FOUND_ROWS * 
+    FROM ticket 
+    WHERE {field} = %s
+    LIMIT %s OFFSET %s
+    """
+    values = (value, per_page, offset)
     try:
         cursor.execute(query, values)
         tickets = cursor.fetchall()
-        return tickets
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_tickets = cursor.fetchone()[0]
+        return tickets, total_tickets
     except Error as e:
         print(f"Error '{e}' ocurrió")
-        return []
+        return [], 0
+    finally:
+        cursor.close()
+        connection.close()
+
+def search_tickets(search_query, page, per_page):
+    connection = create_connection()
+    if connection is None:
+        return [], 0
+    cursor = connection.cursor()
+    offset = (page - 1) * per_page
+    
+    # Usar una coincidencia parcial para buscar en todos los campos
+    query = """
+    SELECT SQL_CALC_FOUND_ROWS * 
+    FROM ticket 
+    WHERE nombre_cliente LIKE %s 
+       OR correo LIKE %s 
+       OR asunto LIKE %s 
+       OR estado LIKE %s 
+       OR fecha LIKE %s
+    LIMIT %s OFFSET %s
+    """
+    values = (
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        per_page, 
+        offset
+    )
+    try:
+        cursor.execute(query, values)
+        tickets = cursor.fetchall()
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_tickets = cursor.fetchone()[0]
+        return tickets, total_tickets
+    except Error as e:
+        print(f"Error '{e}' ocurrió")
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -145,8 +198,8 @@ def validar_campos(nombre_cliente, correo, asunto, estado):
         return False, 'El nombre debe tener un máximo de 20 caracteres y el asunto y el estado deben tener un máximo de 100 caracteres.'
 
     # El correo debe contener un @ y ser de 7 a 15 caracteres
-    if len(correo) < 7 or len(correo) > 15 or '@' not in correo or not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', correo):
-        return False, 'El correo debe contener un @, tener entre 7 y 15 caracteres, y solo permitir los signos @ y .'
+    if len(correo) < 7 or len(correo) > 15 or '@' not in correo:
+        return False, 'El correo debe contener un @ y tener entre 7 y 15 caracteres.'
 
     # El nombre no debe contener signos
     if re.search(r'[^\w\s]', nombre_cliente):
@@ -160,12 +213,24 @@ def index_ticket():
 
 @app_ticket.route('/tickets')
 def tickets():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 5, type=int)
+
     if search_query:
-        tickets = search_tickets(search_query)
+        if ':' in search_query:
+            search_field, search_value = search_query.split(':', 1)
+            if search_field in ["nombre_cliente", "correo", "asunto", "estado", "fecha"]:
+                tickets, total_tickets = search_tickets_by_field(search_field, search_value, page, per_page)
+            else:
+                tickets, total_tickets = search_tickets(search_value, page, per_page)
+        else:
+            tickets, total_tickets = search_tickets(search_query, page, per_page)
     else:
-        tickets = get_tickets()
-    return render_template('tickets.html', tickets=tickets, search_query=search_query)
+        tickets, total_tickets = get_tickets(page, per_page)
+
+    total_pages = (total_tickets + per_page - 1) // per_page
+    return render_template('tickets.html', tickets=tickets, search_query=search_query, page=page, per_page=per_page, total_tickets=total_tickets, total_pages=total_pages)
 
 @app_ticket.route('/submit', methods=['POST'])
 def submit():

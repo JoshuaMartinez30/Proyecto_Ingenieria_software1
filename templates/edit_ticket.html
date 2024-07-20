@@ -6,25 +6,60 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Editar Ticket</h1>
-    <form action="{{ url_for('edit_ticket', id_ticket=ticket[0]) }}" method="POST">
-        <label for="nombre_cliente">Nombre del Cliente:</label>
-        <input type="text" id="nombre_cliente" name="nombre_cliente" value="{{ ticket[1] }}" required><br>
+    <div class="container">
+        <h1>Editar Ticket</h1>
+        <form id="editForm" action="{{ url_for('edit_ticket', id_ticket=ticket[0]) }}" method="POST">
+            <label for="nombre_cliente">Nombre del Cliente:</label>
+            <input type="text" id="nombre_cliente" name="nombre_cliente" value="{{ ticket[1] }}" required><br>
 
-        <label for="correo">Correo:</label>
-        <input type="email" id="correo" name="correo" value="{{ ticket[2] }}" required><br>
+            <label for="correo">Correo:</label>
+            <input type="email" id="correo" name="correo" value="{{ ticket[2] }}" required><br>
 
-        <label for="asunto">Asunto:</label>
-        <input type="text" id="asunto" name="asunto" value="{{ ticket[3] }}" required><br>
+            <label for="asunto">Asunto:</label>
+            <input type="text" id="asunto" name="asunto" value="{{ ticket[3] }}" required><br>
 
-        <label for="estado">Estado:</label>
-        <input type="text" id="estado" name="estado" value="{{ ticket[4] }}" required><br>
+            <label for="estado">Estado:</label>
+            <input type="text" id="estado" name="estado" value="{{ ticket[4] }}" required><br>
 
-        <label for="fecha">Fecha:</label>
-        <input type="date" id="fecha" name="fecha" value="{{ ticket[5] }}" required><br>
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" value="{{ ticket[5] }}" required><br>
 
-        <button type="submit">Actualizar Ticket</button>
-    </form>
-    <a href="{{ url_for('tickets') }}">Regresar</a>
+            <button type="submit">Actualizar Ticket</button>
+        </form>
+        <a href="#" onclick="closeWindow()">Cerrar ventana</a> <!-- Opcional: enlace para cerrar manualmente -->
+    </div>
+
+    <script>
+        function closeWindow() {
+            // Cierra la ventana actual
+            window.close();
+        }
+
+        // Maneja la respuesta después de enviar el formulario
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Previene el envío estándar del formulario
+
+            // Realiza la solicitud AJAX para enviar el formulario
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Cierra la ventana actual
+                    closeWindow();
+                    // Redirige a tickets.html en la ventana principal
+                    window.opener.location.href = "{{ url_for('tickets') }}";
+                } else {
+                    throw new Error('Error al actualizar el ticket');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Puedes manejar errores aquí si es necesario
+            });
+        });
+    </script>
 </body>
 </html>

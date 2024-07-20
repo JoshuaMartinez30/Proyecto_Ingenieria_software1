@@ -18,7 +18,7 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('edit_cliente', id_cliente=cliente[0]) }}" method="post">
+        <form id="editForm" action="{{ url_for('edit_cliente', id_cliente=cliente[0]) }}" method="post">
             <label for="name">Nombre:</label>
             <input type="text" id="nombre" name="nombre" value="{{ cliente[1] }}" required><br><br>
             <label for="gender">Apellido:</label>
@@ -41,7 +41,40 @@
         </form>
         
         <br>
-        <a href="{{ url_for('cliente') }}">lista de cliente</a>
+        <a href="#" onclick="closeWindow()">Cerrar ventana</a> <!-- Opcional: enlace para cerrar manualmente -->
     </div>
+
+    <script>
+        function closeWindow() {
+            // Cierra la ventana actual
+            window.close();
+        }
+
+        // Maneja la respuesta después de enviar el formulario
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Previene el envío estándar del formulario
+
+            // Realiza la solicitud AJAX para enviar el formulario
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Cierra la ventana actual
+                    closeWindow();
+                    // Redirige a cliente.html en la ventana principal
+                    window.opener.location.href = "{{ url_for('cliente') }}";
+                } else {
+                    throw new Error('Error al actualizar el cliente');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Puedes manejar errores aquí si es necesario
+            });
+        });
+    </script>
 </body>
 </html>

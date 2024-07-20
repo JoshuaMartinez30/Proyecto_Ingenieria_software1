@@ -39,19 +39,22 @@ def insert_user(nombre, apellido, fecha_nacimiento, email, telefono, direccion, 
         cursor.close()
         connection.close()
 
-def get_cliente():
+def get_cliente(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM cliente"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM cliente LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         cliente = cursor.fetchall()
-        return cliente
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_cliente = cursor.fetchone()[0]
+        return cliente, total_cliente
     except Error as e:
         print(f"El error '{e}' ocurrió")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -108,20 +111,23 @@ def delete_user(id_cliente):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+def search_users(search_query, search_field, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM cliente WHERE id_cliente LIKE %s OR nombre LIKE %s OR apellido LIKE %s OR fecha_nacimiento LIKE %s OR email LIKE %s OR telefono LIKE %s OR direccion LIKE %s OR fecha_registro LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM cliente WHERE {search_field} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
     try:
         cursor.execute(query, values)
         cliente = cursor.fetchall()
-        return cliente
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_cliente = cursor.fetchone()[0]
+        return cliente, total_cliente
     except Error as e:
         print(f"El error '{e}' ocurrió")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -156,12 +162,18 @@ def index_cliente():
 
 @app_cliente.route('/cliente')
 def cliente():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    search_field = request.args.get('search_field', 'nombre')  # Usa 'nombre' como valor por defecto
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        cliente = search_users(search_query)
+        cliente, total_cliente = search_users(search_query, search_field, page, per_page)
     else:
-        cliente = get_cliente()
-    return render_template('cliente.html', cliente=cliente, search_query=search_query)
+        cliente, total_cliente = get_cliente(page, per_page)
+
+    total_pages = (total_cliente + per_page - 1) // per_page
+    return render_template('cliente.html', cliente=cliente, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_cliente=total_cliente, total_pages=total_pages)
 
 @app_cliente.route('/submit', methods=['POST'])
 def submit():

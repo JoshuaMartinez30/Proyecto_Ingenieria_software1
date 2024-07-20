@@ -39,19 +39,46 @@ def insert_devolucion(correo, nombre, estado, descripcion, fecha):
         cursor.close()
         connection.close()
 
-def get_devolucion():
+def get_devolucion(limit, offset, filters=None, filter_key=None):
     connection = create_connection()
     if connection is None:
         return []
     cursor = connection.cursor()
-    query = "SELECT * FROM devolucion"
+    base_query = "SELECT * FROM devolucion"
+    filter_query = ""
+    if filters and filter_key:
+        filter_query = f" WHERE {filter_key} LIKE %s"
+    query = f"{base_query}{filter_query} LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
-        devolucion = cursor.fetchall()
-        return devolucion
+        values = (f"%{filters}%", limit, offset) if filters and filter_key else (limit, offset)
+        cursor.execute(query, values)
+        devoluciones = cursor.fetchall()
+        return devoluciones
     except Error as e:
         print(f"The error '{e}' occurred")
         return []
+    finally:
+        cursor.close()
+        connection.close()
+
+def count_devoluciones(filters=None, filter_key=None):
+    connection = create_connection()
+    if connection is None:
+        return 0
+    cursor = connection.cursor()
+    base_query = "SELECT COUNT(*) FROM devolucion"
+    filter_query = ""
+    if filters and filter_key:
+        filter_query = f" WHERE {filter_key} LIKE %s"
+    query = f"{base_query}{filter_query}"
+    try:
+        values = (f"%{filters}%",) if filters and filter_key else ()
+        cursor.execute(query, values)
+        count = cursor.fetchone()[0]
+        return count
+    except Error as e:
+        print(f"The error '{e}' occurred")
+        return 0
     finally:
         cursor.close()
         connection.close()
@@ -141,8 +168,17 @@ def index_devolucion():
 
 @app_devolucion.route('/devolucion')
 def devolucion():
-    devoluciones = get_devolucion()
-    return render_template('devolucion.html', devoluciones=devoluciones)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    offset = (page - 1) * per_page
+
+    filter_key = request.args.get('filter_key')
+    filter_value = request.args.get('filter_value')
+
+    devoluciones = get_devolucion(per_page, offset, filter_value, filter_key)
+    total_devoluciones = count_devoluciones(filter_value, filter_key)
+
+    return render_template('devolucion.html', devoluciones=devoluciones, page=page, per_page=per_page, total_devoluciones=total_devoluciones, filter_key=filter_key, filter_value=filter_value)
 
 @app_devolucion.route('/submit', methods=['POST'])
 def submit():

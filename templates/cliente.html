@@ -3,52 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Clientes</title>
+    <style>
+        /* Estilos adicionales pueden ser agregados aquí */
+    </style>
 </head>
 <body>
-        
-        <h2>Lista de Clientes</h2>
-        <form method="get" action="{{ url_for('cliente') }}">
-            <input type="text" name="search" placeholder="buscar productos al cliente..." value="{{ search_query }}">
-            <button type="submit">buscar</button>
-        </form>
+    <h2>Lista de Clientes</h2>
+    <form method="get" action="{{ url_for('cliente') }}">
+        <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
+        <select name="search_field">
+            <option value="id_cliente" {% if search_field == 'id_cliente' %}selected{% endif %}>ID</option>
+            <option value="nombre" {% if search_field == 'nombre' %}selected{% endif %}>Nombre</option>
+            <option value="apellido" {% if search_field == 'apellido' %}selected{% endif %}>Apellido</option>
+            <option value="fecha_nacimiento" {% if search_field == 'fecha_nacimiento' %}selected{% endif %}>Fecha Nacimiento</option>
+            <option value="email" {% if search_field == 'email' %}selected{% endif %}>Email</option>
+            <option value="telefono" {% if search_field == 'telefono' %}selected{% endif %}>Telefono</option>
+            <option value="direccion" {% if search_field == 'direccion' %}selected{% endif %}>Direccion</option>
+            <option value="fecha_registro" {% if search_field == 'fecha_registro' %}selected{% endif %}>Fecha Registro</option>
+        </select>
+        <button type="submit">Buscar</button>
+    </form>
 
-        <br>
-        <a class="ing" href="{{ url_for('index_cliente') }}">Ingresar productos al cliente</a>
-        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <br>
+    <a class="button-link ing" href="{{ url_for('index_cliente') }}">Ingresar productos al cliente</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Fecha Nacimiento</th>
-                    <th>Email</th>
-                    <th>Telefono</th>
-                    <th>Direccion</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cliente in cliente %}
-                <tr>
-                    <td>{{ cliente[0] }}</td>
-                    <td>{{ cliente[1] }}</td>
-                    <td>{{ cliente[2] }}</td>
-                    <td>{{ cliente[3] }}</td>
-                    <td>{{ cliente[4] }}</td>
-                    <td>{{ cliente[5] }}</td>
-                    <td>{{ cliente[6] }}</td>
-                    <td>{{ cliente[7] }}</td>
-                    <td><a class="baa" href="{{ url_for('edit_cliente', id_cliente=cliente[0]) }}">Editar</a>
-                        <a class="bee" href="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}">Eliminar</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Fecha Nacimiento</th>
+                <th>Email</th>
+                <th>Telefono</th>
+                <th>Direccion</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in cliente %}
+            <tr>
+                <td>{{ cliente[0] }}</td>
+                <td>{{ cliente[1] }}</td>
+                <td>{{ cliente[2] }}</td>
+                <td>{{ cliente[3] }}</td>
+                <td>{{ cliente[4] }}</td>
+                <td>{{ cliente[5] }}</td>
+                <td>{{ cliente[6] }}</td>
+                <td>{{ cliente[7] }}</td>
+                <td>
+                    <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_cliente', id_cliente=cliente[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                    <a class="button-link bee" href="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('cliente', page=page-1, search=search_query) }}">&laquo; Anterior</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('cliente', page=p, search=search_query) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="{{ url_for('cliente', page=page+1, search=search_query) }}">Siguiente &raquo;</a>
+        {% endif %}
+    </div>
+
+    <script>
+        function openEditWindow(url) {
+            // Abre una ventana emergente con tamaño específico
+            var width = 600;
+            var height = 400;
+            var left = (screen.width - width) / 2;
+            var top = (screen.height - height) / 2;
+            window.open(url, '_blank', 'toolbar=yes,scrollbars=yes,resizable=yes,top=' + top + ',left=' + left + ',width=' + width + ',height=' + height);
+        }
+    </script>
 </body>
 </html>

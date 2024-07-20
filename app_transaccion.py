@@ -24,7 +24,7 @@ def create_connection():
 def insert_transaccion(nombre_cliente, correo, descripcion, monto, fecha):
     connection = create_connection()
     if connection is None:
-        return
+        return False
     cursor = connection.cursor()
     query = "INSERT INTO transaccion (nombre_cliente, correo, descripcion, monto, fecha) VALUES (%s, %s, %s, %s, %s)"
     values = (nombre_cliente, correo, descripcion, monto, fecha)
@@ -39,19 +39,22 @@ def insert_transaccion(nombre_cliente, correo, descripcion, monto, fecha):
         cursor.close()
         connection.close()
 
-def get_transacciones():
+def get_transacciones(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM transaccion"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM transaccion LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         transacciones = cursor.fetchall()
-        return transacciones
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_transacciones = cursor.fetchone()[0]
+        return transacciones, total_transacciones
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -108,20 +111,22 @@ def delete_transaccion(id_transaccion):
         cursor.close()
         connection.close()
 
-def search_transacciones(search_query):
+def search_transacciones(search_query, search_field, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM transaccion WHERE nombre_cliente LIKE %s OR correo LIKE %s OR descripcion LIKE %s OR monto LIKE %s OR fecha LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM transaccion WHERE {search_field} LIKE %s LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query, values)
+        cursor.execute(query, (f'%{search_query}%', per_page, offset))
         transacciones = cursor.fetchall()
-        return transacciones
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_transacciones = cursor.fetchone()[0]
+        return transacciones, total_transacciones
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -159,12 +164,18 @@ def index_transaccion():
 
 @app_transaccion.route('/transacciones')
 def transacciones():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    search_field = request.args.get('search_field', 'nombre_cliente')  # Campo de búsqueda por defecto
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        transacciones = search_transacciones(search_query)
+        transacciones, total_transacciones = search_transacciones(search_query, search_field, page, per_page)
     else:
-        transacciones = get_transacciones()
-    return render_template('transacciones.html', transacciones=transacciones, search_query=search_query)
+        transacciones, total_transacciones = get_transacciones(page, per_page)
+
+    total_pages = (total_transacciones + per_page - 1) // per_page
+    return render_template('transacciones.html', transacciones=transacciones, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_transacciones=total_transacciones, total_pages=total_pages)
 
 @app_transaccion.route('/submit', methods=['POST'])
 def submit():

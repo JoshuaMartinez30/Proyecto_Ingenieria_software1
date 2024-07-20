@@ -2,48 +2,80 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Proveedores</title>
+    <title>proveedores</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Lista de Proveedores</h1>
+    <h1>Lista de proveedores</h1>
 
+    <!-- Formulario de búsqueda -->
     <form method="GET" action="{{ url_for('proveedores') }}">
-        <input type="text" name="search" value="{{ search_query }}" placeholder="Buscar proveedor...">
+        <select name="search_criteria">
+            <option value="Nombre_del_proveedor" {% if search_criteria == 'Nombre_del_proveedor' %}selected{% endif %}>Nombre del proveedor</option>
+            <option value="Contacto" {% if search_criteria == 'Contacto' %}selected{% endif %}>Contacto</option>
+            <option value="Producto_Servicio" {% if search_criteria == 'Producto_Servicio' %}selected{% endif %}>Producto/Servicio</option>
+            <option value="Historial_de_desempeño" {% if search_criteria == 'Historial_de_desempeño' %}selected{% endif %}>Historial de desempeño</option>
+            <option value="id_pedido" {% if search_criteria == 'id_pedido' %}selected{% endif %}>ID Pedido</option>
+            <option value="id_marca" {% if search_criteria == 'id_marca' %}selected{% endif %}>ID Marca</option>
+        </select>
+        <input type="text" name="search_query" value="{{ search_query if search_query is not none else '' }}" placeholder="Buscar...">
         <button type="submit">Buscar</button>
     </form>
 
-    <br>
-    <a class="ing" href="{{ url_for('index_proveedores') }}">Ingresar Nuevo Proveedor</a>
-    <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <a class="button-link ing" href="{{ url_for('index_proveedores') }}">Ingresar Datos de Proveedor</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
     <table>
-        <thead>
-            <tr>
-                <th>Nombre del Proveedor</th>
-                <th>Contacto</th>
-                <th>Producto/Servicio</th>
-                <th>Historial de Desempeño</th>
-                <th>ID Pedido</th>
-                <th>ID Marca</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for proveedor in proveedores %}
-                <tr>
-                    <td>{{ proveedor[1] }}</td>
-                    <td>{{ proveedor[2] }}</td>
-                    <td>{{ proveedor[3] }}</td>
-                    <td>{{ proveedor[4] }}</td>
-                    <td>{{ proveedor[5] }}</td>
-                    <td>{{ proveedor[6] }}</td>
-                    <td>
-                        <a class="baa" href="{{ url_for('edit_proveedores', id_proveedor=proveedor[0]) }}">Editar</a>
-                        <a class="bee" href="{{ url_for('eliminar_proveedores', id_proveedor=proveedor[0]) }}">Eliminar</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
+        <tr>
+            <th>ID del proveedor</th>
+            <th>Nombre del proveedor</th>
+            <th>Contacto</th>
+            <th>Producto/Servicio</th>
+            <th>Historial de desempeño</th>
+            <th>Id Pedido</th>
+            <th>Id Marca</th>
+            <th>Acciones</th>
+        </tr>
+        {% for proveedor in proveedores %}
+        <tr>
+            <td>{{ proveedor[0] }}</td>
+            <td>{{ proveedor[1] }}</td>
+            <td>{{ proveedor[2] }}</td>
+            <td>{{ proveedor[3] }}</td>
+            <td>{{ proveedor[4] }}</td>
+            <td>{{ proveedor[5] }}</td>
+            <td>{{ proveedor[6] }}</td>
+            <td>
+                <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_proveedores', id_proveedor=proveedor[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                <a class="button-link bee" href="{{ url_for('eliminar_proveedores', id_proveedor=proveedor[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+            </td>
+        </tr>
+        {% endfor %}
     </table>
+
+    <script>
+        // Función para abrir la ventana de edición en una nueva ventana emergente
+        function openEditWindow(url) {
+            window.open(url, "_blank", "width=600,height=400");
+        }
+    </script>
+
+    <div>
+        {% if page > 1 %}
+        <a href="{{ url_for('proveedores', page=page-1, search_criteria=search_criteria, search_query=search_query) }}">Anterior</a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <strong>{{ p }}</strong>
+        {% else %}
+        <a href="{{ url_for('proveedores', page=p, search_criteria=search_criteria, search_query=search_query) }}">{{ p }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="{{ url_for('proveedores', page=page+1, search_criteria=search_criteria, search_query=search_query) }}">Siguiente</a>
+        {% endif %}
+    </div>
 </body>
 </html>

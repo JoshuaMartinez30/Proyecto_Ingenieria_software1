@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Editar Gasto</title>
+    <title>Editar Mantenimiento</title>
 </head>
 <body>
     <div class="container">
-        <h2>Editar Gasto</h2>
+        <h2>Editar Mantenimiento</h2>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <ul>
@@ -18,15 +18,24 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form id="editForm" action="{{ url_for('edit', id_gasto=gasto[0]) }}" method="post">
-            <label for="fecha">Fecha:</label>
-            <input type="date" id="fecha" name="fecha" value="{{ gasto[1] }}" required><br><br>
-            <label for="monto">Monto:</label>
-            <input type="number" id="monto" name="monto" value="{{ gasto[2] }}" required><br><br>
-            <label for="descripcion">Descripción:</label>
-            <input type="text" id="descripcion" name="descripcion" value="{{ gasto[3] }}" required><br><br>
+        <form id="editForm" action="{{ url_for('edit_mantenimiento', id_mantenimiento=mantenimiento[0]) }}" method="post">
+            <label for="id_equipo">Id Equipo:</label>
+            <input type="number" id="id_equipo" name="id_equipo" min="0" value="{{ mantenimiento[1] }}" ><br><br>
+            <label for="fecha_mantenimiento">Fecha Mantenimiento:</label>
+            <input type="date" id="fecha_mantenimiento" name="fecha_mantenimiento" value="{{ mantenimiento[2] }}" ><br><br>
+            <label for="tipo_mantenimiento">Tipo Mantenimiento:</label>
+            <input type="text" id="tipo_mantenimiento" name="tipo_mantenimiento" value="{{ mantenimiento[3] }}" ><br><br>
+            <label for="id_tecnico">Id Técnico:</label>
+            <input type="number" id="id_tecnico" name="id_tecnico" min="0" value="{{ mantenimiento[4] }}" ><br><br>
+            <label for="id_supervisor">Id Supervisor:</label>
+            <input type="number" id="id_supervisor" name="id_supervisor" min="0" value="{{ mantenimiento[5] }}" ><br><br>
+            <label for="detalles">Detalles:</label>
+            <input type="text" id="detalles" name="detalles" value="{{ mantenimiento[6] }}" ><br><br>
+            <label for="estado_equipo">Estado Equipo:</label>
+            <input type="text" id="estado_equipo" name="estado_equipo" value="{{ mantenimiento[7] }}" ><br><br>
             <input type="submit" value="Actualizar">
         </form>
+        
         <br>
         <a href="#" onclick="closeWindow()">Cerrar ventana</a> <!-- Opcional: enlace para cerrar manualmente -->
     </div>
@@ -51,10 +60,10 @@
                 if (response.ok) {
                     // Cierra la ventana actual
                     closeWindow();
-                    // Redirige a gastos.html en la ventana principal
-                    window.opener.location.href = "{{ url_for('gastos') }}";
+                    // Redirige a mantenimiento.html en la ventana principal
+                    window.opener.location.href = "{{ url_for('mantenimiento') }}";
                 } else {
-                    throw new Error('Error al actualizar el gasto');
+                    throw new Error('Error al actualizar el mantenimiento');
                 }
             })
             .catch(error => {

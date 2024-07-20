@@ -39,19 +39,22 @@ def insert_user(nombre_del_producto, descripcion, cantidad_en_stock, stock_minim
         cursor.close()
         connection.close()
 
-def get_inventario():
+def get_inventario(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM inventario"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         inventario = cursor.fetchall()
-        return inventario
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_inventario = cursor.fetchone()[0]
+        return inventario, total_inventario
     except Error as e:
-        print(f"Error '{e}' ocurrió")
-        return []
+        print(f"The error '{e}' occurred")
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -108,20 +111,40 @@ def delete_user(id_inventario):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+def search_users(search_query, filter_by, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM inventario WHERE nombre_del_producto LIKE %s OR descripcion LIKE %s OR cantidad_en_stock LIKE %s OR stock_minimo LIKE %s OR stock_maximo LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    if filter_by == "nombre_del_producto":
+        query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario WHERE nombre_del_producto LIKE %s LIMIT %s OFFSET %s"
+        values = (f'%{search_query}%', per_page, offset)
+    elif filter_by == "descripcion":
+        query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario WHERE descripcion LIKE %s LIMIT %s OFFSET %s"
+        values = (f'%{search_query}%', per_page, offset)
+    elif filter_by == "cantidad_en_stock":
+        query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario WHERE cantidad_en_stock LIKE %s LIMIT %s OFFSET %s"
+        values = (f'%{search_query}%', per_page, offset)
+    elif filter_by == "stock_minimo":
+        query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario WHERE stock_minimo LIKE %s LIMIT %s OFFSET %s"
+        values = (f'%{search_query}%', per_page, offset)
+    elif filter_by == "stock_maximo":
+        query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario WHERE stock_maximo LIKE %s LIMIT %s OFFSET %s"
+        values = (f'%{search_query}%', per_page, offset)
+    else:
+        query = "SELECT SQL_CALC_FOUND_ROWS * FROM inventario WHERE nombre_del_producto LIKE %s OR descripcion LIKE %s OR cantidad_en_stock LIKE %s OR stock_minimo LIKE %s OR stock_maximo LIKE %s LIMIT %s OFFSET %s"
+        values = (f'%{search_query}%',) * 5 + (per_page, offset)
+    
     try:
         cursor.execute(query, values)
         inventario = cursor.fetchall()
-        return inventario
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_inventario = cursor.fetchone()[0]
+        return inventario, total_inventario
     except Error as e:
         print(f"Error '{e}' ocurrió")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -189,11 +212,17 @@ def index_inventario():
 @app_inventario.route('/inventario')
 def inventario():
     search_query = request.args.get('search')
+    filter_by = request.args.get('filter_by', 'nombre_del_producto')
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        inventario = search_users(search_query)
+        inventario, total_inventario = search_users(search_query, filter_by, page, per_page)
     else:
-        inventario = get_inventario()
-    return render_template('inventario.html', inventario=inventario, search_query=search_query)
+        inventario, total_inventario = get_inventario(page, per_page)
+
+    total_pages = (total_inventario + per_page - 1) // per_page
+    return render_template('inventario.html', inventario=inventario, search_query=search_query, filter_by=filter_by, page=page, per_page=per_page, total_inventario=total_inventario, total_pages=total_pages)
 
 @app_inventario.route('/submit', methods=['POST'])
 def submit():
@@ -210,11 +239,10 @@ def submit():
         return redirect(url_for('index_inventario'))
 
     if insert_user(nombre_del_producto, descripcion, cantidad_en_stock, stock_minimo, stock_maximo):
-        flash('Producto insertado exitosamente!')
+        flash('Producto agregado exitosamente!')
     else:
-        flash('Ocurrió un error al insertar el producto.')
-
-    return redirect(url_for('index_inventario'))
+        flash('Ocurrió un error al agregar el producto.')
+    return redirect(url_for('inventario'))
 
 @app_inventario.route('/edit_inventario/<int:id_inventario>', methods=['GET', 'POST'])
 def edit_inventario(id_inventario):
@@ -235,30 +263,22 @@ def edit_inventario(id_inventario):
             flash('Producto actualizado exitosamente!')
         else:
             flash('Ocurrió un error al actualizar el producto.')
-
         return redirect(url_for('inventario'))
 
     inventario = get_inventario_by_id(id_inventario)
     if inventario is None:
-        flash('Producto no encontrado!')
+        flash('Producto no encontrado.')
         return redirect(url_for('inventario'))
+
     return render_template('edit_inventario.html', inventario=inventario)
 
-@app_inventario.route('/eliminar_inventario/<int:id_inventario>', methods=['GET', 'POST'])
+@app_inventario.route('/eliminar_inventario/<int:id_inventario>')
 def eliminar_inventario(id_inventario):
-    if request.method == 'POST':
-        if delete_user(id_inventario):
-            flash('Producto eliminado exitosamente!')
-        else:
-            flash('Ocurrió un error al eliminar el producto.')
-        return redirect(url_for('inventario'))
-
-    inventario = get_inventario_by_id(id_inventario)
-    if inventario is None:
-        flash('Producto no encontrado!')
-        return redirect(url_for('inventario'))
-    return render_template('eliminar_inventario.html', inventario=inventario)
+    if delete_user(id_inventario):
+        flash('Producto eliminado exitosamente!')
+    else:
+        flash('Ocurrió un error al eliminar el producto.')
+    return redirect(url_for('inventario'))
 
 if __name__ == '__main__':
     app_inventario.run(debug=True, port=5001)
-

@@ -86,19 +86,23 @@ def insert_user(nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, est
         cursor.close()
         connection.close()
 
-def get_promocion():
+
+def get_promocion(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM promocion"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM promocion LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         promocion = cursor.fetchall()
-        return promocion
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_promocion = cursor.fetchone()[0]
+        return promocion, total_promocion
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -180,13 +184,16 @@ def index_promocion():
 @app_promocion.route('/promocion')
 def promocion():
     search_query = request.args.get('search')
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        promocion = search_users(search_query)
+        promocion, total_promocion = search_users(search_query, page, per_page)
     else:
-        promocion = get_promocion()
-    return render_template('promocion.html', promocion=promocion, search_query=search_query)
+        promocion, total_promocion = get_promocion(page, per_page)
 
-
+    total_pages = (total_promocion + per_page - 1) // per_page
+    return render_template('promocion.html', promocion=promocion, search_query=search_query, page=page, per_page=per_page, total_promocion=total_promocion, total_pages=total_pages)
 
 @app_promocion.route('/submit', methods=['POST'])
 def submit():

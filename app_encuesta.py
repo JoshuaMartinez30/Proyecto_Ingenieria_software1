@@ -24,7 +24,7 @@ def create_connection():
 def insert_encuesta(cliente, Fecha, puntuacion, comentarios):
     connection = create_connection()
     if connection is None:
-        return
+        return False
     cursor = connection.cursor()
     query = "INSERT INTO encuestas (cliente, Fecha, puntuacion, comentarios) VALUES (%s, %s, %s, %s)"
     values = (cliente, Fecha, puntuacion, comentarios)
@@ -39,19 +39,23 @@ def insert_encuesta(cliente, Fecha, puntuacion, comentarios):
         cursor.close()
         connection.close()
 
-def get_encuestas():
+
+def get_encuestas(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM encuestas"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM encuestas LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         encuestas = cursor.fetchall()
-        return encuestas
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_encuestas = cursor.fetchone()[0]
+        return encuestas, total_encuestas
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -112,23 +116,28 @@ def delete_encuesta(id_encuesta):
         cursor.close()
         connection.close()
 
-def search_encuestas(search_query):
+def search_encuestas(search_query, search_field, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM encuestas WHERE cliente LIKE %s"
-    values = (f'%{search_query}%',)
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM encuestas WHERE {search_field} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
+    
     try:
         cursor.execute(query, values)
         encuestas = cursor.fetchall()
-        return encuestas
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_encuestas = cursor.fetchone()[0]
+        return encuestas, total_encuestas
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
 
 def validar_encuesta(cliente, Fecha, puntuacion, comentarios):
     errores = []
@@ -155,7 +164,7 @@ def validar_encuesta(cliente, Fecha, puntuacion, comentarios):
     if re.search(r'[^a-zA-Z0-9\s]', comentarios):
         errores.append("Los comentarios no deben contener signos.")
     
-    # Validar que no haya números en campos de texto y viceversa
+    # Validar que no haya números en campos de texto
     if re.search(r'\d', cliente):
         errores.append("El nombre del cliente no debe contener números.")
     
@@ -179,12 +188,18 @@ def index_encuestas():
 
 @app_encuestas.route('/encuestas')
 def encuestas():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    search_field = request.args.get('search_field', 'id_encuesta')  # Default search field
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        encuestas = search_encuestas(search_query)
+        encuestas, total_encuestas = search_encuestas(search_query, search_field, page, per_page)
     else:
-        encuestas = get_encuestas()
-    return render_template('encuestas.html', encuestas=encuestas, search_query=search_query)
+        encuestas, total_encuestas = get_encuestas(page, per_page)
+
+    total_pages = (total_encuestas + per_page - 1) // per_page
+    return render_template('encuestas.html', encuestas=encuestas, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_encuestas=total_encuestas, total_pages=total_pages)
 
 @app_encuestas.route('/submit', methods=['POST'])
 def submit():

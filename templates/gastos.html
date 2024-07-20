@@ -3,17 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Lista de Gastos</title>
 </head>
 <body>
-
-    
     <div class="container">
         <h2>Lista de Gastos</h2>
         <br>
-        <a class="ing" href="{{ url_for('index') }}">Ingresar Gasto</a>
-        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <a class="button-link ing" href="{{ url_for('index') }}">Ingresar Gasto</a>
+        <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+        <!-- Formulario de búsqueda -->
+        <form method="get" action="{{ url_for('gastos') }}">
+            <input type="text" name="search" placeholder="Buscar gastos..." value="{{ search_query }}">
+            <select name="search_field">
+                <option value="id_gasto" {% if search_field == 'id_gasto' %}selected{% endif %}>ID Gasto</option>
+                <option value="fecha_gasto" {% if search_field == 'fecha_gasto' %}selected{% endif %}>Fecha</option>
+                <option value="monto" {% if search_field == 'monto' %}selected{% endif %}>Monto</option>
+                <option value="descripcion" {% if search_field == 'descripcion' %}selected{% endif %}>Descripción</option>
+            </select>
+            <button type="submit">Buscar</button>
+        </form>
+        
+
         <table>
             <thead>
                 <tr>
@@ -32,14 +45,31 @@
                     <td>{{ gasto[2] }}</td>
                     <td>{{ gasto[3] }}</td>
                     <td>
-                        <a class="baa" href="{{ url_for('edit', id_gasto=gasto[0]) }}">Editar</a>
-                        <a class="bee" href="{{ url_for('eliminar', id_gasto=gasto[0]) }}">Eliminar</a>
+                        <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit', id_gasto=gasto[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                        <a class="button-link bee" href="{{ url_for('eliminar', id_gasto=gasto[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('gastos', page=page-1, search=search_query) }}">&laquo; Anterior</a>
+            {% endif %}
+            {% for p in range(1, total_pages + 1) %}
+            <a href="{{ url_for('gastos', page=p, search=search_query) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+            {% endfor %}
+            {% if page < total_pages %}
+            <a href="{{ url_for('gastos', page=page+1, search=search_query) }}">Siguiente &raquo;</a>
+            {% endif %}
+        </div>
     </div>
+
+    <script>
+        // Función para abrir la ventana de edición en una nueva ventana emergente
+        function openEditWindow(url) {
+            window.open(url, "_blank", "width=600,height=400");
+        }
+    </script>
 </body>
 </html>

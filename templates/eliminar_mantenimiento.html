@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar mantenimiento</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar mantenimiento</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('eliminar_mantenimiento', id_mantenimiento=mantenimiento[0]) }}" method="post">
+            <label for="gender">Id Equipo:</label>
+            <input type="text" id="id_equipo" name="id_equipo"value="{{ mantenimiento[1] }}" readonly><br><br>
+            <label for="nationality">Fecha Mantenimiento:</label>
+            <input type="date" id="fecha_mantenimiento" name="fecha_mantenimiento"value="{{ mantenimiento[2] }}" readonly><br><br>
+            <label for="nationality">Tipo Mantenimiento :</label>
+            <input type="text" id="tipo_mantenimiento" name="tipo_mantenimiento"value="{{ mantenimiento[3] }}" readonly><br><br>
+            <label for="nationality">Id Tecnico:</label>
+            <input type="text" id="id_tecnico" name="id_tecnico"value="{{ mantenimiento[4] }}" readonly><br><br>
+            <label for="nationality">Id Supervisor:</label>
+            <input type="text" id="id_supervisor" name="id_supervisor"value="{{ mantenimiento[5] }}" readonly><br><br>
+            <label for="nationality">Detalles :</label>
+            <input type="text" id="detalles" name="detalles"value="{{ mantenimiento[6] }}" readonly><br><br>
+            <label for="nationality">Estado Equipo:</label>
+            <input type="text" id="estado_equipo" name="estado_equipo"value="{{ mantenimiento[7] }}" readonly><br><br>
+            
+            
+            <form action="{{ url_for('eliminar_mantenimiento', id_mantenimiento=mantenimiento[0]) }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('¿estas seguro de eliminar esta mantenimiento? {{mantenimiento[1]}}');">Eliminar</button>
+        </form>
+        
+        <br>
+        <a href="{{ url_for('mantenimiento') }}">lista de mantenimiento</a>
+    </div>
+</body>
+</html>

@@ -41,19 +41,22 @@ def insert_user(primer_nombre, primer_apellido, correo, password):
         cursor.close()
         connection.close()
 
-def get_usuarios():
+def get_usuarios(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM usuarios"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM usuarios LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         usuarios = cursor.fetchall()
-        return usuarios
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_usuarios = cursor.fetchone()[0]
+        return usuarios, total_usuarios
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -111,23 +114,38 @@ def delete_user(id_usuario):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+def search_users(search_query, search_field, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM usuarios WHERE primer_nombre LIKE %s OR primer_apellido LIKE %s OR correo LIKE %s OR password LIKE %s OR usuario_activo LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    query = """
+    SELECT SQL_CALC_FOUND_ROWS * 
+    FROM usuarios 
+    WHERE {} LIKE %s 
+    LIMIT %s OFFSET %s
+    """.format(
+        {
+            'nombre': 'primer_nombre',
+            'apellido': 'primer_apellido',
+            'correo': 'correo'
+        }.get(search_field, 'primer_nombre')  # Default to 'primer_nombre' if no valid field
+    )
+    values = (f'%{search_query}%', per_page, offset)
     try:
         cursor.execute(query, values)
         usuarios = cursor.fetchall()
-        return usuarios
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_usuarios = cursor.fetchone()[0]
+        return usuarios, total_usuarios
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
 
 def validate_user_data(primer_nombre, primer_apellido, correo, password):
     if not primer_nombre or not primer_apellido or not correo or not password:
@@ -156,12 +174,18 @@ def index_usuarios():
 
 @app_usuarios.route('/usuarios')
 def usuarios():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    search_field = request.args.get('search_field', 'nombre')
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        usuarios = search_users(search_query)
+        usuarios, total_usuarios = search_users(search_query, search_field, page, per_page)
     else:
-        usuarios = get_usuarios()
-    return render_template('usuarios.html', usuarios=usuarios, search_query=search_query)
+        usuarios, total_usuarios = get_usuarios(page, per_page)
+
+    total_pages = (total_usuarios + per_page - 1) // per_page
+    return render_template('usuarios.html', usuarios=usuarios, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_usuarios=total_usuarios, total_pages=total_pages)
 
 @app_usuarios.route('/submit', methods=['POST'])
 def submit():
@@ -175,8 +199,7 @@ def submit():
         flash(message)
         return redirect(url_for('index_usuarios'))
 
-    hashed_password = generate_password_hash(password)
-    if insert_user(primer_nombre, primer_apellido, correo, hashed_password):
+    if insert_user(primer_nombre, primer_apellido, correo, password):
         flash('Usuario ingresado exitosamente.')
     else:
         flash('Ocurrió un error al ingresar el usuario.')
@@ -197,8 +220,7 @@ def edit_usuarios(id_usuario):
             flash(message)
             return redirect(url_for('edit_usuarios', id_usuario=id_usuario))
 
-        hashed_password = generate_password_hash(password)
-        if update_user(id_usuario, primer_nombre, primer_apellido, correo, hashed_password, usuario_activo):
+        if update_user(id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo):
             flash('Usuario actualizado exitosamente.')
         else:
             flash('Ocurrió un error al actualizar el usuario.')

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Editar idea</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        function validarFormulario() {
+            var inputs = document.querySelectorAll('input[type="text"]');
+            var valid = true;
+
+            inputs.forEach(function(input) {
+                var value = input.value;
+
+                // No se permiten caracteres especiales
+                if (/[^a-zA-Z0-9 ]/.test(value)) {
+                    alert("No se permiten caracteres especiales en " + input.name);
+                    valid = false;
+                }
+
+                // No se permiten letras repetidas más de dos veces consecutivas
+                if (/([a-zA-Z])\1\1/.test(value)) {
+                    alert("No se permite repetir la misma letra más de dos veces consecutivas en " + input.name);
+                    valid = false;
+                }
+
+                // Longitud mínima de 3 caracteres
+                if (value.length < 3) {
+                    alert(input.name + " debe tener al menos 3 caracteres");
+                    valid = false;
+                }
+
+                // No se permite repetir la misma vocal dos veces consecutivas
+                if (/([aeiouAEIOU])\1/.test(value)) {
+                    alert("No se permite repetir la misma vocal dos veces consecutivas en " + input.name);
+                    valid = false;
+                }
+            });
+
+            // Validación de fechas
+            var fechaPropuesta = new Date(document.getElementById('fecha_propuesta').value);
+            var fechaImplementacion = new Date(document.getElementById('fecha_implementacion').value);
+            var fechaEvaluacion = new Date(document.getElementById('fecha_evaluacion').value);
+
+            if (fechaImplementacion < fechaPropuesta) {
+                alert("La fecha de implementación no puede ser antes que la fecha propuesta");
+                valid = false;
+            }
+
+            if (fechaEvaluacion < fechaPropuesta || fechaEvaluacion < fechaImplementacion) {
+                alert("La fecha de evaluación no puede ser antes que la fecha propuesta ni la fecha de implementación");
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        function closePopup() {
+            window.opener.location.reload(); // Optional: Refresh the parent page
+            window.close();
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Editar idea</h2>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('edit_idea', id_mejora=idea[0]) }}" method="post" onsubmit="return validarFormulario();">
+            <label for="id_proponente">Id Proponente:</label>
+            <input type="text" id="id_proponente" name="id_proponente" value="{{ idea[1] }}"><br><br>
+            <label for="id_evaluador">Id Evaluador:</label>
+            <input type="text" id="id_evaluador" name="id_evaluador" value="{{ idea[2] }}"><br><br>
+            <label for="fecha_propuesta">Fecha Propuesta:</label>
+            <input type="date" id="fecha_propuesta" name="fecha_propuesta" value="{{ idea[3] }}"><br><br>
+            <label for="descripcion_idea">Descripcion Idea:</label>
+            <input type="text" id="descripcion_idea" name="descripcion_idea" value="{{ idea[4] }}"><br><br>
+            <label for="estado">Estado:</label>
+            <input type="text" id="estado" name="estado" value="{{ idea[5] }}"><br><br>
+            <label for="fecha_implementacion">Fecha Implementacion:</label>
+            <input type="date" id="fecha_implementacion" name="fecha_implementacion" value="{{ idea[6] }}"><br><br>
+            <label for="descripcion_implementacion">Descripcion Implementacion:</label>
+            <input type="text" id="descripcion_implementacion" name="descripcion_implementacion" value="{{ idea[7] }}"><br><br>
+            <label for="fecha_evaluacion">Fecha Evaluacion:</label>
+            <input type="date" id="fecha_evaluacion" name="fecha_evaluacion" value="{{ idea[8] }}"><br><br>
+            <label for="impacto">Impacto:</label>
+            <input type="text" id="impacto" name="impacto" value="{{ idea[9] }}"><br><br>
+            <label for="indicadores_rendimiento">Indicadores Rendimiento:</label>
+            <input type="text" id="indicadores_rendimiento" name="indicadores_rendimiento" value="{{ idea[10] }}"><br><br>
+            <input type="submit" value="Actualizar">
+        </form>
+    </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+            var form = this;
+
+            // Make an AJAX request to submit the form
+            var xhr = new XMLHttpRequest();
+            xhr.open(form.method, form.action, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    closePopup(); // Close the popup only if the request is successful
+                }
+            };
+
+            // Prepare form data
+            var formData = new FormData(form);
+            var params = new URLSearchParams(formData).toString();
+
+            // Send the request with form data
+            xhr.send(params);
+        });
+    </script>
+</body>
+</html>

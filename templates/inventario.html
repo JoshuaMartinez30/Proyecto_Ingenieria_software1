@@ -1,49 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Inventario</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Tabla de informacion | inventario</title>
 </head>
 <body>
-        
-        <h2>lista de inventario</h2>
-        <form method="get" action="{{ url_for('inventario') }}">
-            <input type="text" name="search" placeholder="buscar productos al inventario..." value="{{ search_query }}">
-            <button type="submit">buscar</button>
-        </form>
-
-        <br>
-        <a class="ing" href="{{ url_for('index_inventario') }}">Ingresar productos al inventario</a>
-        <a class="ing" href="http://127.0.0.1:5501/index.html">INICIO</a>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripcion</th>
-                    <th>Cantidad en Stock</th>
-                    <th>Stock Minimo</th>
-                    <th>Stock Maximo</th>
-                    <th>Acciones</tr>
-                </tr>
-            </thead>
-            <tbody>
-                {% for inventario in inventario %}
-                <tr>
-                    <td>{{ inventario[0] }}</td>
-                    <td>{{ inventario[1] }}</td>
-                    <td>{{ inventario[2] }}</td>
-                    <td>{{ inventario[3] }}</td>
-                    <td>{{ inventario[4] }}</td>
-                    <td>{{ inventario[5] }}</td>
-                    <td><a class="baa" href="{{ url_for('edit_inventario', id_inventario=inventario[0]) }}">Editar</a>
-                        <a class="bee" href="{{ url_for('eliminar_inventario', id_inventario=inventario[0]) }}">Eliminar</a>
-                    </td>
-                {% endfor %}
-            </tbody>
-        </table>
+    <h1>Inventario</h1>
+    <a class="button-link ing" href="{{ url_for('index_inventario') }}">Agregar Nuevo Producto</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    
+    <!-- Formulario de búsqueda -->
+    <form method="get" action="{{ url_for('inventario') }}">
+        <label for="search">Buscar:</label>
+        <input type="text" id="search" name="search" value="{{ search_query }}">
+        <label for="filter_by">Filtrar por:</label>
+        <select id="filter_by" name="filter_by">
+            <option value="nombre_del_producto" {% if filter_by == "nombre_del_producto" %}selected{% endif %}>Nombre del Producto</option>
+            <option value="descripcion" {% if filter_by == "descripcion" %}selected{% endif %}>Descripción</option>
+            <option value="cantidad_en_stock" {% if filter_by == "cantidad_en_stock" %}selected{% endif %}>Cantidad en Stock</option>
+            <option value="stock_minimo" {% if filter_by == "stock_minimo" %}selected{% endif %}>Stock Mínimo</option>
+            <option value="stock_maximo" {% if filter_by == "stock_maximo" %}selected{% endif %}>Stock Máximo</option>
+        </select>
+        <button type="submit">Buscar</button>
+    </form>
+    
+    <!-- Tabla de inventario -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Producto</th>
+                <th>Descripción</th>
+                <th>Cantidad en Stock</th>
+                <th>Stock Mínimo</th>
+                <th>Stock Máximo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventario %}
+            <tr>
+                <td>{{ item[0] }}</td>
+                <td>{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+                <td>{{ item[3] }}</td>
+                <td>{{ item[4] }}</td>
+                <td>{{ item[5] }}</td>
+                <td>
+                    <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_inventario', id_inventario=item[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                    <a class="button-link bee" href="{{ url_for('eliminar_inventario', id_inventario=item[0]) }}" onclick="return confirm('¿Estás seguro de que quieres eliminar este producto?');">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        // Función para abrir la ventana de edición en una nueva ventana emergente
+        function openEditWindow(url) {
+            window.open(url, "_blank", "width=600,height=400");
+        }
+    </script>
+    <br>
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('inventario', page=page-1, search=search_query) }}">&laquo; Anterior</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('inventario', page=p, search=search_query) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="{{ url_for('inventario', page=page+1, search=search_query) }}">Siguiente &raquo;</a>
+        {% endif %}
     </div>
+    
 </body>
 </html>

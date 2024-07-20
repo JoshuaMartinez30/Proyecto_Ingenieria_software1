@@ -56,6 +56,26 @@ def get_gastos():
         cursor.close()
         connection.close()
 
+def get_gastos(page, per_page):
+    connection = create_connection()
+    if connection is None:
+        return [], 0
+    cursor = connection.cursor()
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM gasto LIMIT %s OFFSET %s"
+    try:
+        cursor.execute(query, (per_page, offset))
+        gastos = cursor.fetchall()
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_gastos = cursor.fetchone()[0]
+        return gastos, total_gastos
+    except Error as e:
+        print(f"The error '{e}' occurred")
+        return [], 0
+    finally:
+        cursor.close()
+        connection.close()
+
 def get_gasto_by_id(id_gasto):
     connection = create_connection()
     if connection is None:
@@ -108,14 +128,45 @@ def delete_gasto(id_gasto):
         cursor.close()
         connection.close()
 
+def search_gastos(criterio, valor, page, per_page):
+    connection = create_connection()
+    if connection is None:
+        return [], 0
+    cursor = connection.cursor()
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM gasto WHERE {criterio} LIKE %s LIMIT %s OFFSET %s"
+    try:
+        cursor.execute(query, (f'%{valor}%', per_page, offset))
+        gastos = cursor.fetchall()
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_gastos = cursor.fetchone()[0]
+        return gastos, total_gastos
+    except Error as e:
+        print(f"Ocurrió el error '{e}'")
+        return [], 0
+    finally:
+        cursor.close()
+        connection.close()
+
+
 @app_gasto.route('/')
 def index():
     return render_template('index_gasto.html')
 
-@app_gasto.route('/gastos')
+@app_gasto.route('/gastos', methods=['GET'])
 def gastos():
-    gastos = get_gastos()
-    return render_template('gastos.html', gastos=gastos)
+    search_query = request.args.get('search', '')
+    search_field = request.args.get('search_field', 'id_gasto')  # Default search field
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
+    if search_query:
+        gastos, total_gastos = search_gastos(search_field, search_query, page, per_page)
+    else:
+        gastos, total_gastos = get_gastos(page, per_page)
+
+    total_pages = (total_gastos + per_page - 1) // per_page
+    return render_template('gastos.html', gastos=gastos, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_gastos=total_gastos, total_pages=total_pages)
 
 @app_gasto.route('/submit', methods=['POST'])
 def submit():
@@ -142,9 +193,9 @@ def submit():
         flash('Descripción no puede contener solo signos.')
         return redirect(url_for('index'))
 
-    # Verificar que descripción no contenga signos
-    if re.search(r'[!-/:-@[-`{-~]', descripcion):
-        flash('Descripción no puede contener signos.')
+    # Verificar que descripción no contenga números
+    if re.search(r'\d', descripcion):
+        flash('La descripción no puede contener números.')
         return redirect(url_for('index'))
 
     if insert_gasto(fecha, monto, descripcion):
@@ -180,13 +231,9 @@ def edit(id_gasto):
             flash('Descripción no puede contener solo signos.')
             return redirect(url_for('edit', id_gasto=id_gasto))
         
-        if re.match(r'^[j]+$', descripcion):
-            flash('Dehshsh')
-            return redirect(url_for('edit', id_gasto=id_gasto))
-
-        # Verificar que descripción no contenga signos
-        if re.search(r'[!-/:-@[-`{-~]', descripcion):
-            flash('Descripción no puede contener signos.')
+        # Verificar que descripción no contenga números
+        if re.search(r'\d', descripcion):
+            flash('La descripción no puede contener números.')
             return redirect(url_for('edit', id_gasto=id_gasto))
 
         if update_gasto(id_gasto, fecha, monto, descripcion):

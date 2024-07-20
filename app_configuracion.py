@@ -24,7 +24,7 @@ def create_connection():
 def insert_configuracion(nombre_de_configuracion, descripcion, estado_config):
     connection = create_connection()
     if connection is None:
-        return
+        return False
     cursor = connection.cursor()
     query = "INSERT INTO seguridad (nombre_de_configuracion, descripcion, estado_config) VALUES (%s, %s, %s)"
     values = (nombre_de_configuracion, descripcion, estado_config)
@@ -39,19 +39,22 @@ def insert_configuracion(nombre_de_configuracion, descripcion, estado_config):
         cursor.close()
         connection.close()
 
-def get_configuraciones():
+def get_configuraciones(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM seguridad"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM seguridad LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         configuraciones = cursor.fetchall()
-        return configuraciones
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_configuraciones = cursor.fetchone()[0]
+        return configuraciones, total_configuraciones
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -112,53 +115,47 @@ def delete_configuracion(id_configuracion):
         cursor.close()
         connection.close()
 
-def search_configuraciones(search_query):
+def search_configuraciones(search_query, filter_field, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM seguridad WHERE nombre_de_configuracion LIKE %s"
-    values = (f'%{search_query}%',)
+
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM seguridad WHERE {filter_field} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
+
     try:
         cursor.execute(query, values)
         configuraciones = cursor.fetchall()
-        return configuraciones
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_configuraciones = cursor.fetchone()[0]
+        return configuraciones, total_configuraciones
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
 
 def validar_configuracion(nombre_de_configuracion, descripcion, estado_config):
     errores = []
-
-    # Validar campos en blanco
     if not nombre_de_configuracion or not descripcion or not estado_config:
         errores.append("Todos los campos son requeridos.")
-    
-    # Validar longitud de caracteres
     if len(nombre_de_configuracion) < 3 or len(nombre_de_configuracion) > 15:
         errores.append("El nombre de la configuración debe tener entre 3 y 15 caracteres.")
     if len(descripcion) < 3 or len(descripcion) > 50:
         errores.append("La descripción debe tener entre 3 y 50 caracteres.")
-    
-    # Validar que no haya tres letras repetidas
     if re.search(r'(.)\1{2,}', nombre_de_configuracion):
         errores.append("El nombre de la configuración no debe tener tres letras repetidas consecutivamente.")
     if re.search(r'(.)\1{2,}', descripcion):
         errores.append("La descripción no debe tener tres letras repetidas consecutivamente.")
-    
-    # Validar que no haya signos
     if re.search(r'[^a-zA-Z0-9\s]', nombre_de_configuracion):
         errores.append("El nombre de la configuración no debe contener signos.")
     if re.search(r'[^a-zA-Z0-9\s]', descripcion):
         errores.append("La descripción no debe contener signos.")
-    
-    # Validar estado_config
     if estado_config not in ["activo", "inactivo"]:
         errores.append("El estado de la configuración debe ser 'activo' o 'inactivo'.")
-
     return errores
 
 @app_encuestas.route('/')
@@ -167,12 +164,18 @@ def index_configuraciones():
 
 @app_encuestas.route('/configuraciones')
 def configuraciones():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    filter_field = request.args.get('filter', 'nombre_de_configuracion')
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        configuraciones = search_configuraciones(search_query)
+        configuraciones, total_configuraciones = search_configuraciones(search_query, filter_field, page, per_page)
     else:
-        configuraciones = get_configuraciones()
-    return render_template('configuraciones.html', configuraciones=configuraciones, search_query=search_query)
+        configuraciones, total_configuraciones = get_configuraciones(page, per_page)
+
+    total_pages = (total_configuraciones + per_page - 1) // per_page
+    return render_template('configuraciones.html', configuraciones=configuraciones, search_query=search_query, filter=filter_field, page=page, per_page=per_page, total_configuraciones=total_configuraciones, total_pages=total_pages)
 
 @app_encuestas.route('/submit', methods=['POST'])
 def submit():

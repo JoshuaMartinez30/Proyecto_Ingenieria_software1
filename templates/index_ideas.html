@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Ingrese su producto al idea</title>
+    <script>
+        function validarFormulario() {
+            var inputs = document.querySelectorAll('input[type="text"]');
+            var valid = true;
+
+            inputs.forEach(function(input) {
+                var value = input.value;
+
+                // No se permiten caracteres especiales
+                if (/[^a-zA-Z0-9 ]/.test(value)) {
+                    alert("No se permiten caracteres especiales en " + input.name);
+                    valid = false;
+                }
+
+                // No se permiten letras repetidas más de dos veces consecutivas
+                if (/([a-zA-Z])\1\1/.test(value)) {
+                    alert("No se permite repetir la misma letra más de dos veces consecutivas en " + input.name);
+                    valid = false;
+                }
+
+                // Longitud mínima de 3 caracteres
+                if (value.length < 3) {
+                    alert(input.name + " debe tener al menos 3 caracteres");
+                    valid = false;
+                }
+
+                // No se permite repetir la misma vocal dos veces consecutivas
+                if (/([aeiouAEIOU])\1/.test(value)) {
+                    alert("No se permite repetir la misma vocal dos veces consecutivas en " + input.name);
+                    valid = false;
+                }
+
+                
+            });
+             // Validación de fechas
+             var fechaPropuesta = new Date(document.getElementById('fecha_propuesta').value);
+             var fechaImplementacion = new Date(document.getElementById('fecha_implementacion').value);
+             var fechaEvaluacion = new Date(document.getElementById('fecha_evaluacion').value);
+
+            if (fechaImplementacion < fechaPropuesta) {
+            alert("La fecha de implementación no puede ser antes que la fecha propuesta");
+            valid = false;
+            }
+            if (fechaEvaluacion < fechaPropuesta || fechaEvaluacion < fechaImplementacion) {
+            alert("La fecha de evaluación no puede ser antes que la fecha propuesta ni la fecha de implementación");
+            valid = false;
+            }
+
+            return valid;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Ingrese una idea</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form onsubmit="return validarFormulario()" action="{{ url_for('submit') }}" method="post">
+            <label for="id_proponente">Id Proponente:</label>
+            <input type="number" id="id_proponente" name="id_proponente" min="0" required><br><br>
+            <label for="id_evaluador">Id Evaluador:</label>
+            <input type="number" id="id_evaluador" name="id_evaluador" min="0" required><br><br>
+            <label for="fecha_propuesta">Fecha Propuesta:</label>
+            <input type="date" id="fecha_propuesta" name="fecha_propuesta" required><br><br>
+            <label for="descripcion_idea">Descripcion Idea:</label>
+            <input type="text" id="descripcion_idea" name="descripcion_idea" required><br><br>
+            <label for="estado">Estado:</label>
+            <input type="text" id="estado" name="estado" required><br><br>
+            <label for="fecha_implementacion">Fecha Implementacion:</label>
+            <input type="date" id="fecha_implementacion" name="fecha_implementacion" required><br><br>
+            <label for="descripcion_implementacion">Descripcion Implementacion:</label>
+            <input type="text" id="descripcion_implementacion" name="descripcion_implementacion" required><br><br>
+            <label for="fecha_evaluacion">Fecha Evaluacion:</label>
+            <input type="date" id="fecha_evaluacion" name="fecha_evaluacion" required><br><br>
+            <label for="impacto">Impacto:</label>
+            <input type="text" id="impacto" name="impacto" required><br><br>
+            <label for="indicadores_rendimiento">Indicadores Rendimiento:</label>
+            <input type="text" id="indicadores_rendimiento" name="indicadores_rendimiento" required><br><br>
+            <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a href="{{ url_for('idea') }}">Lista de productos en el idea</a>
+    </div>
+</body>
+</html>

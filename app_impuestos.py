@@ -39,22 +39,29 @@ def insert_user(nombre_producto, precio_base, tasa_impuesto, impuesto_calculado,
         cursor.close()
         connection.close()
 
-def get_impuestos():
+
+
+def get_impuestos(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM impuestos"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM impuestos LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         impuestos = cursor.fetchall()
-        return impuestos
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_impuestos = cursor.fetchone()[0]
+        return impuestos, total_impuestos
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
+
 
 def get_impuestos_by_id(id_impuestos):
     connection = create_connection()
@@ -108,23 +115,27 @@ def delete_user(id_impuestos):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+def search_users(search_query, search_field, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM impuestos WHERE nombre_producto LIKE %s OR precio_base LIKE %s OR tasa_impuesto LIKE %s OR impuesto_calculado LIKE %s OR precio_final LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM impuestos WHERE {search_field} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
     try:
         cursor.execute(query, values)
         impuestos = cursor.fetchall()
-        return impuestos
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_impuestos = cursor.fetchone()[0]
+        return impuestos, total_impuestos
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
 
 def validate_fields(nombre_producto, precio_base, tasa_impuesto, impuesto_calculado, precio_final):
     if not all([nombre_producto, precio_base, tasa_impuesto, impuesto_calculado, precio_final]):
@@ -145,19 +156,24 @@ def validate_fields(nombre_producto, precio_base, tasa_impuesto, impuesto_calcul
         return "El precio final debe ser un número válido (puede incluir hasta dos decimales)."
     return None
 
-
 @app_impuestos.route('/')
 def index_impuestos():
     return render_template('index_impuestos.html')
 
 @app_impuestos.route('/impuestos')
 def impuestos():
-    search_query = request.args.get('search')
+    search_query = request.args.get('search', '')
+    search_field = request.args.get('search_field', 'nombre_producto')  # Ajusta el campo de búsqueda por defecto
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+
     if search_query:
-        impuestos = search_users(search_query)
+        impuestos, total_impuestos = search_users(search_query, search_field, page, per_page)
     else:
-        impuestos = get_impuestos()
-    return render_template('impuestos.html', impuestos=impuestos, search_query=search_query)
+        impuestos, total_impuestos = get_impuestos(page, per_page)
+
+    total_pages = (total_impuestos + per_page - 1) // per_page
+    return render_template('impuestos.html', impuestos=impuestos, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_impuestos=total_impuestos, total_pages=total_pages)
 
 @app_impuestos.route('/submit', methods=['POST'])
 def submit():

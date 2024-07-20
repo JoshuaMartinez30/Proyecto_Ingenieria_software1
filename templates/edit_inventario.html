@@ -18,24 +18,55 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('edit_inventario', id_inventario=inventario[0]) }}" method="post">
-            <label for="name">Nombre:</label>
+        <form id="editForm" action="{{ url_for('edit_inventario', id_inventario=inventario[0]) }}" method="post">
+            <label for="nombre_del_producto">Nombre:</label>
             <input type="text" id="nombre_del_producto" name="nombre_del_producto" value="{{ inventario[1] }}" required><br><br>
-            <label for="gender">Descripcion:</label>
+            <label for="descripcion">Descripción:</label>
             <input type="text" id="descripcion" name="descripcion" value="{{ inventario[2] }}" required><br><br>
-            <label for="nationality">Cantidad en Stock:</label>
+            <label for="cantidad_en_stock">Cantidad en Stock:</label>
             <input type="text" id="cantidad_en_stock" name="cantidad_en_stock" value="{{ inventario[3] }}" required><br><br>
-            <input type="submit" value="Update">
-            <label for="nationality">Stock Minimo:</label>
+            <label for="stock_minimo">Stock Mínimo:</label>
             <input type="text" id="stock_minimo" name="stock_minimo" value="{{ inventario[4] }}" required><br><br>
-            <input type="submit" value="Update">
-            <label for="nationality">Stock maximo:</label>
+            <label for="stock_maximo">Stock Máximo:</label>
             <input type="text" id="stock_maximo" name="stock_maximo" value="{{ inventario[5] }}" required><br><br>
-            <input type="submit" value="Update">
+            <button type="submit">Actualizar</button>
         </form>
         
         <br>
-        <a href="{{ url_for('inventario') }}">lista de inventario</a>
+        <a href="{{ url_for('inventario') }}">Lista de inventario</a>
     </div>
+
+    <script>
+        // Función para cerrar la ventana actual
+        function closeWindow() {
+            window.close();
+        }
+
+        // Maneja la respuesta después de enviar el formulario
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Previene el envío estándar del formulario
+
+            // Realiza la solicitud AJAX para enviar el formulario
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Cierra la ventana actual
+                    closeWindow();
+                    // Redirige a inventario.html en la ventana principal
+                    window.opener.location.href = "{{ url_for('inventario') }}";
+                } else {
+                    throw new Error('Error al actualizar el inventario');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Puedes manejar errores aquí si es necesario
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+import re
 import mysql.connector
 from mysql.connector import Error
 
@@ -38,19 +39,22 @@ def insert_user(nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_con
         cursor.close()
         connection.close()
 
-def get_empleado():
+def get_empleado(page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM empleados"
+    offset = (page - 1) * per_page
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM empleados LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query)
+        cursor.execute(query, (per_page, offset))
         empleados = cursor.fetchall()
-        return empleados
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_empleados = cursor.fetchone()[0]
+        return empleados, total_empleados
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
@@ -72,13 +76,15 @@ def get_empleado_by_id(id_empleado):
         cursor.close()
         connection.close()
 
-def update_user(nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono):
+def update_user(nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono, id_empleado):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = """UPDATE empleados SET nombre = %s, apellido = %s, fecha_nacimiento = %s, puesto_de_trabajo = %s, fecha_contratacion = %s, sucursal = %s, salario = %s, email = %s, telefono = %s WHERE id_empleado = %s"""
-    values = (nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono)
+    query = """UPDATE empleados 
+               SET nombre = %s, apellido = %s, fecha_nacimiento = %s, puesto_de_trabajo = %s, fecha_contratacion = %s, sucursal = %s, salario = %s, email = %s, telefono = %s 
+               WHERE id_empleado = %s"""
+    values = (nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono, id_empleado)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -89,6 +95,7 @@ def update_user(nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_con
     finally:
         cursor.close()
         connection.close()
+
 
 def delete_user(id_empleado):
     connection = create_connection()
@@ -107,36 +114,65 @@ def delete_user(id_empleado):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
+
+def search_users(search_criteria, search_query, page, per_page):
     connection = create_connection()
     if connection is None:
-        return []
+        return [], 0
     cursor = connection.cursor()
-    query = "SELECT * FROM empleados WHERE nombre LIKE %s OR apellido LIKE %s OR puesto_de_trabajo LIKE %s OR sucursal LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
+    offset = (page - 1) * per_page
+    query = f"SELECT * FROM empleados WHERE {search_criteria} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
     try:
         cursor.execute(query, values)
         empleados = cursor.fetchall()
-        return empleados
+        count_query = f"SELECT COUNT(*) FROM empleados WHERE {search_criteria} LIKE %s"
+        cursor.execute(count_query, (f'%{search_query}%',))
+        total_count = cursor.fetchone()[0]
+        return empleados, total_count
     except Error as e:
         print(f"The error '{e}' occurred")
-        return []
+        return [], 0
     finally:
         cursor.close()
         connection.close()
+
+def validar_campo(texto, permite_numeros=False):
+    if not permite_numeros:
+        if any(char.isdigit() for char in texto):
+            return False
+    if permite_numeros:
+        if any(char.isalpha() for char in texto):
+            return False
+    if not re.match("^[A-Za-z0-9\s]*$", texto):  # permite letras, números y espacios
+        return False
+    if re.search(r'(.)\1\1', texto):  # No permite tres letras iguales seguidas
+        return False
+    if len(texto) < 3:
+        return False
+    return True
 
 @app_empleados.route('/')
 def index_empleados():
     return render_template('index_empleados.html')
 
+
 @app_empleados.route('/empleados')
 def empleados():
-    search_query = request.args.get('search')
-    if search_query:
-        empleados = search_users(search_query)
+    search_criteria = request.args.get('search_criteria')
+    search_query = request.args.get('search_query')
+    page = int(request.args.get('page', 1))
+    per_page = 10
+
+    if search_criteria and search_query:
+        empleados, total_count = search_users(search_criteria, search_query, page, per_page)
     else:
-        empleados = get_empleado()
-    return render_template('empleados.html', empleados=empleados, search_query=search_query)
+        empleados, total_count = get_empleado(page, per_page)
+    
+    total_pages = (total_count + per_page - 1) // per_page
+
+    return render_template('empleados.html', empleados=empleados, search_criteria=search_criteria, search_query=search_query, page=page, total_pages=total_pages)
+
 
 
 @app_empleados.route('/submit', methods=['POST'])
@@ -151,8 +187,17 @@ def submit():
     email = request.form['email']
     telefono = request.form['telefono']
 
-    if not nombre or not apellido or not fecha_nacimiento or not puesto_de_trabajo or not fecha_contratacion or not sucursal or not salario or not telefono:
+    # Validaciones
+    if not all([nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, telefono]):
         flash('¡Todos los campos obligatorios deben ser completados!')
+        return redirect(url_for('index_empleados'))
+
+    if not (validar_campo(nombre) and validar_campo(apellido) and validar_campo(puesto_de_trabajo) and validar_campo(sucursal) and validar_campo(email, permite_numeros=False)):
+        flash('Los campos no pueden contener números, signos ni letras repetidas tres veces seguidas, y deben tener al menos 3 caracteres.')
+        return redirect(url_for('index_empleados'))
+
+    if not (validar_campo(salario, permite_numeros=True) and validar_campo(telefono, permite_numeros=True)):
+        flash('El salario y teléfono solo pueden contener números y deben tener al menos 3 caracteres.')
         return redirect(url_for('index_empleados'))
 
     if insert_user(nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono):
@@ -175,16 +220,26 @@ def edit_empleado(id_empleado):
         email = request.form['email']
         telefono = request.form['telefono']
 
-        if not nombre or not apellido or not fecha_nacimiento or not puesto_de_trabajo or not fecha_contratacion or not sucursal or not salario:
+        # Validaciones
+        if not all([nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario]):
             flash('¡Todos los campos obligatorios deben ser completados!')
-            return redirect(url_for('edit_empleado', id_empleado=id_empleado))  # Corregido el nombre de la función
+            return redirect(url_for('edit_empleado', id_empleado=id_empleado))
 
-        if update_user(id_empleado, nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono):
+        if not (validar_campo(nombre) and validar_campo(apellido) and validar_campo(puesto_de_trabajo) and validar_campo(sucursal) and validar_campo(email, permite_numeros=False)):
+            flash('Los campos no pueden contener números, signos ni letras repetidas tres veces seguidas, y deben tener al menos 3 caracteres.')
+            return redirect(url_for('edit_empleado', id_empleado=id_empleado))
+
+        if not (validar_campo(salario, permite_numeros=True) and validar_campo(telefono, permite_numeros=True)):
+            flash('El salario y teléfono solo pueden contener números y deben tener al menos 3 caracteres.')
+            return redirect(url_for('edit_empleado', id_empleado=id_empleado))
+
+        if update_user(nombre, apellido, fecha_nacimiento, puesto_de_trabajo, fecha_contratacion, sucursal, salario, email, telefono, id_empleado):
             flash('¡Empleado actualizado exitosamente!')
+            return redirect(url_for('empleados'))
         else:
             flash('Ocurrió un error al actualizar el empleado.')
         
-        return redirect(url_for('empleados'))
+        return redirect(url_for('edit_empleado', id_empleado=id_empleado))
 
     empleado = get_empleado_by_id(id_empleado)
     if empleado is None:
@@ -192,6 +247,7 @@ def edit_empleado(id_empleado):
         return redirect(url_for('empleados'))
     
     return render_template('edit_empleados.html', empleado=empleado)
+
 
 @app_empleados.route('/eliminar_empleado/<int:id_empleado>', methods=['GET', 'POST'])
 def eliminar_empleado(id_empleado):
