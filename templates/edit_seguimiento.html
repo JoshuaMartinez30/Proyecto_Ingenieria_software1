@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Seguimiento de Envío</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Seguimiento de Envío</h1>
+        <form id="editForm" method="POST" action="{{ url_for('edit_seguimiento', id_seguimiento=seguimiento[0]) }}">
+            <label>ID Pedido:</label>
+            <input type="text" name="id_pedido" value="{{ seguimiento[1] }}" required readonly><br><br>
+
+            <label>Fecha de Envío:</label>
+            <input type="date" name="fecha_envio" required value="{{ seguimiento[2].strftime('%Y-%m-%d') }}"><br><br>
+
+            <label>Fecha Estimada de Entrega:</label>
+            <input type="date" name="fecha_entrega_estimada" required value="{{ seguimiento[3].strftime('%Y-%m-%d') }}"><br><br>
+
+            <label>Fecha Real de Entrega:</label>
+            <input type="date" name="fecha_entrega_real" value="{{ seguimiento[4].strftime('%Y-%m-%d') if seguimiento[4] else '' }}"><br><br>
+
+
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" required>
+                <option value="Pendiente" {% if seguimiento[5] == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                <option value="En Proceso" {% if seguimiento[5] == 'En Proceso' %}selected{% endif %}>En Proceso</option>
+                <option value="Enviado" {% if seguimiento[5] == 'Enviado' %}selected{% endif %}>Enviado</option>
+                <option value="Recibido" {% if seguimiento[5] == 'Recibido' %}selected{% endif %}>Recibido</option>
+                <option value="Completado" {% if seguimiento[5] == 'Completado' %}selected{% endif %}>Completado</option>
+                <option value="Cancelado" {% if seguimiento[5] == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                <option value="Devolucion" {% if seguimiento[5] == 'Devolucion' %}selected{% endif %}>Devolucion</option>
+                <option value="Rechazado" {% if seguimiento[5] == 'Rechazado' %}selected{% endif %}>Rechazado</option>
+            </select><br><br>
+
+            <label>Transportista:</label>
+            <select name="id_transportista" required>
+                {% for transportista in transportistas %}
+                    <option value="{{ transportista[0] }}" {% if transportista[0] == seguimiento[6] %}selected{% endif %}>{{ transportista[1] }}</option>
+                {% endfor %}
+            </select><br><br>
+
+            <button type="submit">Guardar Cambios</button>
+        </form>
+        <br>
+        <a href="#" onclick="closeWindow()">Cerrar ventana</a>
+    </div>
+
+    <script>
+        function closeWindow() {
+            window.close();
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+    
+            var formData = new FormData(this);
+    
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    if (window.opener) {
+                        window.opener.location.reload();
+                    }
+                    closeWindow();
+                } else {
+                    throw new Error('Error al actualizar el seguimiento de envío');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

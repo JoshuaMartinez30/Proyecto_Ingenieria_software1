@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Almacenes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function validateName() {
+            const nameInput = document.getElementById('nombre');
+            const nameValue = nameInput.value;
+
+            const regex = /^(?!.*([a-zA-Z])\1{2})[a-zA-Z]{3,10}$/;
+            if (!regex.test(nameValue)) {
+                alert('El nombre debe tener entre 3 y 10 caracteres, sin números ni signos, sin la misma letra repetida tres veces seguidas.');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Almacenes</h1>
+        <form action="{{ url_for('submit') }}" method="POST" onsubmit="return validateName()">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required pattern="(?!.*([a-zA-Z])\1{2})[a-zA-Z]{3,10}">
+            
+            <label for="direccion">Dirección:</label>
+            <select id="direccion" name="direccion" required>
+                <option value="Tegucigalpa">Tegucigalpa</option>
+                <option value="Cortes">Cortes</option>
+                <option value="Colon">Colón</option>
+                <option value="Olancho">Olancho</option>
+            </select>
+            
+            <button type="submit">Agregar Almacén</button>
+        </form>
+        <a href="{{ url_for('almacenes') }}">Ver Almacenes</a>
+    </div>
+</body>
+</html>

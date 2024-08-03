@@ -33,6 +33,8 @@
             <input type="text" id="direccion" name="direccion" value="{{ cliente[6] }}" readonly><br><br>
             <label for="nationality">Fecha Registro:</label>
             <input type="text" id="fecha_registro" name="fecha_registro" value="{{ cliente[7] }}" readonly><br><br>
+            <label for="nationality">Documento:</label>
+            <input type="text" id="documento" name="documento" value="{{ cliente[8] }}" readonly><br><br>
             <form action="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}" method="post" style="display:inline;">
                 <button type="submit" onclick="return confirm('estas seguro de eliminar este producto del cliente? {{cliente[1]}}');">Eliminar</button>
         </form>

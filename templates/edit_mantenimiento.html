@@ -1,76 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Editar Mantenimiento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h2>Editar Mantenimiento</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        <form id="editForm" action="{{ url_for('edit_mantenimiento', id_mantenimiento=mantenimiento[0]) }}" method="post">
-            <label for="id_equipo">Id Equipo:</label>
-            <input type="number" id="id_equipo" name="id_equipo" min="0" value="{{ mantenimiento[1] }}" ><br><br>
-            <label for="fecha_mantenimiento">Fecha Mantenimiento:</label>
-            <input type="date" id="fecha_mantenimiento" name="fecha_mantenimiento" value="{{ mantenimiento[2] }}" ><br><br>
-            <label for="tipo_mantenimiento">Tipo Mantenimiento:</label>
-            <input type="text" id="tipo_mantenimiento" name="tipo_mantenimiento" value="{{ mantenimiento[3] }}" ><br><br>
-            <label for="id_tecnico">Id Técnico:</label>
-            <input type="number" id="id_tecnico" name="id_tecnico" min="0" value="{{ mantenimiento[4] }}" ><br><br>
-            <label for="id_supervisor">Id Supervisor:</label>
-            <input type="number" id="id_supervisor" name="id_supervisor" min="0" value="{{ mantenimiento[5] }}" ><br><br>
+        <h1>Editar Mantenimiento</h1>
+        <form action="{{ url_for('edit_mantenimiento', id_mantenimiento=mantenimiento[0]) }}" method="POST">
+            <label for="id_equipo">ID del Equipo:</label>
+            <select id="id_equipo" name="id_equipo" required>
+                <option value="">Seleccione una opción</option>
+                <option value="3030" {% if mantenimiento[1] == '3030' %}selected{% endif %}>3030</option>
+                <option value="0909" {% if mantenimiento[1] == '0909' %}selected{% endif %}>0909</option>
+                <option value="2222" {% if mantenimiento[1] == '2222' %}selected{% endif %}>2222</option>
+            </select>
+            
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" value="{{ mantenimiento[2] }}" required>
+            
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" name="tipo" required>
+                <option value="">Seleccione una opción</option>
+                <option value="electrico" {% if mantenimiento[3] == 'electrico' %}selected{% endif %}>Eléctrico</option>
+                <option value="mecanico" {% if mantenimiento[3] == 'mecanico' %}selected{% endif %}>Mecánico</option>
+                <option value="automatico" {% if mantenimiento[3] == 'automatico' %}selected{% endif %}>Automático</option>
+                <option value="no automatico" {% if mantenimiento[3] == 'no automatico' %}selected{% endif %}>No Automático</option>
+            </select>
+            
             <label for="detalles">Detalles:</label>
-            <input type="text" id="detalles" name="detalles" value="{{ mantenimiento[6] }}" ><br><br>
-            <label for="estado_equipo">Estado Equipo:</label>
-            <input type="text" id="estado_equipo" name="estado_equipo" value="{{ mantenimiento[7] }}" ><br><br>
-            <input type="submit" value="Actualizar">
+            <textarea id="detalles" name="detalles" required>{{ mantenimiento[4] }}</textarea>
+            
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" required>
+                <option value="">Seleccione una opción</option>
+                <option value="bueno" {% if mantenimiento[5] == 'bueno' %}selected{% endif %}>Bueno</option>
+                <option value="medio" {% if mantenimiento[5] == 'medio' %}selected{% endif %}>Medio</option>
+                <option value="malo" {% if mantenimiento[5] == 'malo' %}selected{% endif %}>Malo</option>
+                <option value="en reparacion" {% if mantenimiento[5] == 'en reparacion' %}selected{% endif %}>En Reparación</option>
+            </select>
+            
+            <label for="documento">Documento:</label>
+            <input type="text" id="documento" name="documento" value="{{ mantenimiento[6] }}" required pattern="^[01]\d{12}$" title="El documento debe contener exactamente 13 dígitos, iniciar con 0 o 1 y ser un número positivo.">
+            
+            <button type="submit">Actualizar Mantenimiento</button>
         </form>
-        
-        <br>
-        <a href="#" onclick="closeWindow()">Cerrar ventana</a> <!-- Opcional: enlace para cerrar manualmente -->
+        <a href="{{ url_for('mantenimientos') }}">Regresar</a>
     </div>
-
-    <script>
-        function closeWindow() {
-            // Cierra la ventana actual
-            window.close();
-        }
-
-        // Maneja la respuesta después de enviar el formulario
-        document.getElementById('editForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Previene el envío estándar del formulario
-
-            // Realiza la solicitud AJAX para enviar el formulario
-            var formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Cierra la ventana actual
-                    closeWindow();
-                    // Redirige a mantenimiento.html en la ventana principal
-                    window.opener.location.href = "{{ url_for('mantenimiento') }}";
-                } else {
-                    throw new Error('Error al actualizar el mantenimiento');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Puedes manejar errores aquí si es necesario
-            });
-        });
-    </script>
 </body>
 </html>

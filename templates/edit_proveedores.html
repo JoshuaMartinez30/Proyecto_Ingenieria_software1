@@ -10,54 +10,85 @@
         <h1>Editar Proveedor</h1>
         <form id="editForm" method="POST" action="{{ url_for('edit_proveedores', id_proveedor=proveedores[0]) }}">
             <label>Nombre del Proveedor:</label>
-            <input type="text" name="Nombre_del_proveedor" value="{{ proveedores[1] }}">
-            <label>Contacto:</label>
-            <input type="text" name="Contacto" value="{{ proveedores[2] }}">
+            <input type="text" name="Nombre_del_proveedor" value="{{ proveedores[1] }}" required>
             <label>Producto/Servicio:</label>
-            <input type="text" name="Producto_Servicio" value="{{ proveedores[3] }}">
+            <input type="text" name="Producto_Servicio" value="{{ proveedores[2] }}" required>
             <label>Historial de Desempeño:</label>
-            <input type="text" name="Historial_de_desempeño" value="{{ proveedores[4] }}">
-            <label>ID Pedido:</label>
-            <input type="text" name="id_pedido" value="{{ proveedores[5] }}">
-            <label>ID Marca:</label>
-            <input type="text" name="id_marca" value="{{ proveedores[6] }}">
+            <select name="Historial_de_desempeño" required>
+                <option value="Malo" {% if proveedores[3] == 'Malo' %}selected{% endif %}>Malo</option>
+                <option value="Medio" {% if proveedores[3] == 'Medio' %}selected{% endif %}>Medio</option>
+                <option value="Bueno" {% if proveedores[3] == 'Bueno' %}selected{% endif %}>Bueno</option>
+            </select>
+            <label>Nombre de la Compañía:</label>
+            <input type="text" name="nombre_compañia" value="{{ proveedores[4] }}" required>
+            <label>Teléfono:</label>
+            <input type="text" id="Telefono" name="Telefono" value="{{ proveedores[5] }}" required>
+            <label>Ciudad:</label>
+            <input type="text" name="Ciudad" value="{{ proveedores[6] }}" required>
+            <label>Tipo:</label>
+            <select name="tipo" required>
+                <option value="Numero de Identidad" {% if proveedores[7] == 'Numero de Identidad' %}selected{% endif %}>Número de Identidad</option>
+                <option value="Pasaporte" {% if proveedores[7] == 'Pasaporte' %}selected{% endif %}>Pasaporte</option>
+                <option value="RTN" {% if proveedores[7] == 'RTN' %}selected{% endif %}>RTN</option>
+            </select>
+            <label>Documento:</label>
+            <input type="text" name="Documento" value="{{ proveedores[8] }}" required>
             <button type="submit">Guardar Cambios</button>
         </form>
         <br>
-        <a href="#" onclick="closeWindow()">Cerrar ventana</a> <!-- Opcional: enlace para cerrar manualmente -->
+        <a href="#" onclick="closeWindow()">Cerrar ventana</a>
     </div>
 
     <script>
         function closeWindow() {
-            // Cierra la ventana actual
             window.close();
         }
-
-        // Maneja la respuesta después de enviar el formulario
+    
         document.getElementById('editForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Previene el envío estándar del formulario
-
-            // Realiza la solicitud AJAX para enviar el formulario
+            event.preventDefault();  // Evita el envío del formulario por defecto
+    
             var formData = new FormData(this);
+    
             fetch(this.action, {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
                 if (response.ok) {
-                    // Cierra la ventana actual
+                    if (window.opener) {
+                        window.opener.location.reload(); // Recarga la ventana principal
+                    }
                     closeWindow();
-                    // Redirige a proveedores.html en la ventana principal
-                    window.opener.location.href = "{{ url_for('proveedores') }}";
                 } else {
                     throw new Error('Error al actualizar el proveedor');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Puedes manejar errores aquí si es necesario
             });
         });
+    
+        // Función para formatear el número de teléfono con un guion automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            var telefonoInput = document.getElementById('Telefono');
+            if (telefonoInput) {
+                telefonoInput.addEventListener('input', function(event) {
+                    var value = event.target.value.replace(/[^0-9]/g, ''); // Solo números
+                    if (value.length > 4) {
+                        value = value.slice(0, 4) + '-' + value.slice(4, 8);
+                    }
+                    event.target.value = value;
+                });
+    
+                // Asegura que el valor inicial tenga el guion si es un número válido
+                var initialValue = telefonoInput.value.replace(/[^0-9]/g, '');
+                if (initialValue.length === 8) {
+                    telefonoInput.value = initialValue.slice(0, 4) + '-' + initialValue.slice(4, 8);
+                }
+            }
+        });
     </script>
+    
+    
 </body>
 </html>

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar Pedido</title>
+</head>
+<body>
+    <h1>Eliminar Pedido</h1>
+    <p>¿Está seguro de que desea eliminar el pedido ID {{ pedido[0] }}?</p>
+    <form method="post">
+        <input type="submit" value="Eliminar">
+        <a href="{{ url_for('pedidos') }}">Cancelar</a>
+    </form>
+</body>
+</html>

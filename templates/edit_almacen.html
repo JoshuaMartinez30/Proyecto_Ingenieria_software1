@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Almacén</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Almacén</h1>
+        <form action="{{ url_for('edit_almacen', id_almacen=almacen[0]) }}" method="POST">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ almacen[1] }}" required>
+            
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" name="direccion" value="{{ almacen[2] }}" required>
+            
+            <button type="submit">Actualizar Almacén</button>
+        </form>
+        <a href="{{ url_for('almacenes') }}" onclick="window.close()">Volver a la lista</a>
+    </div>
+</body>
+</html>

@@ -9,6 +9,7 @@
 <body>
     <div class="container">
         <h2>Tabla de empleados</h2>
+        
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <ul>
@@ -26,17 +27,35 @@
             <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
             <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required><br><br>
             <label for="puesto">Puesto de Trabajo:</label>
-            <input type="text" id="puesto_de_trabajo" name="puesto_de_trabajo" required><br><br>
+              <select id="puesto_trabajo" name="puesto_trabajo" required>
+                  <option value="Gerente Ventas">Gerente de Ventas</option>
+                  <option value="Asesor de Ventas">Asesor de Ventas</option>
+                  <option value="Tecnico de Servicio">Técnico de Servicio</option>
+                  <option value="Especialista en Marketing">Especialista en Marketing</option>
+                  <option value="Gerente de Inventario">Gerente de Inventario</option>
+              </select>
+              <br><br>
+
             <label for="fecha_contratacion">Fecha de Contratación:</label>
             <input type="date" id="fecha_contratacion" name="fecha_contratacion" required><br><br>
             <label for="sucursal">Sucursal:</label>
-            <input type="text" id="sucursal" name="sucursal" required><br><br>
-            <label for="salario">Salario:</label>
-            <input type="text" id="salario" name="salario" required><br><br>
+            <select id="sucursal" name="sucursal" required>
+                {% for sucursal in sucursales %}
+                <option value="{{ sucursal[1] }}">{{ sucursal[0] }}</option>
+                {% endfor %}
+            </select><br><br>
             <label for="email">Email:</label>
             <input type="email" id="email" name="email"><br><br>
             <label for="telefono">Teléfono:</label>
             <input type="text" id="telefono" name="telefono"><br><br>
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" name="tipo" required>
+              <option value="DNI ">DNI</option>
+              <option value="Pasaporte">Pasaporte</option>
+              <option value="RTN">RTN</option>
+            </select><br><br>
+            <label for="telefono">Documento:</label>
+            <input type="text" id="documento" name="documento"><br><br>
             <input type="submit" value="Guardar">
         </form>
         <br>

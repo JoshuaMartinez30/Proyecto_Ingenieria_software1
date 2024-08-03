@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Idea de Mejora</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Editar Idea de Mejora</h1>
+    <form action="{{ url_for('edit_idea', id_mejora=idea[0]) }}" method="POST">
+        <label for="documento">Documento:</label>
+        <input type="text" id="documento" name="documento" value="{{ idea[1] }}" required>
+        <label for="fecha_propuesta">Fecha Propuesta:</label>
+        <input type="date" id="fecha_propuesta" name="fecha_propuesta" value="{{ idea[2] }}" required>
+        <label for="descripcion_idea">Descripción de la Idea:</label>
+        <textarea id="descripcion_idea" name="descripcion_idea" required>{{ idea[3] }}</textarea>
+        <label for="estado">Estado:</label>
+        <input type="text" id="estado" name="estado" value="{{ idea[4] }}" required>
+        <label for="fecha_implementacion">Fecha Implementación:</label>
+        <input type="date" id="fecha_implementacion" name="fecha_implementacion" value="{{ idea[5] }}" required>
+        <label for="descripcion_implementacion">Descripción de la Implementación:</label>
+        <textarea id="descripcion_implementacion" name="descripcion_implementacion" required>{{ idea[6] }}</textarea>
+        <label for="fecha_evaluacion">Fecha Evaluación:</label>
+        <input type="date" id="fecha_evaluacion" name="fecha_evaluacion" value="{{ idea[7] }}" required>
+        <label for="impacto">Impacto:</label>
+        <select id="impacto" name="impacto" required>
+            <option value="a futuro" {% if idea[8] == 'a futuro' %}selected{% endif %}>A Futuro</option>
+            <option value="inmediato" {% if idea[8] == 'inmediato' %}selected{% endif %}>Inmediato</option>
+        </select>
+        <label for="indicadores_rendimiento">Indicadores de Rendimiento:</label>
+        <select id="indicadores_rendimiento" name="indicadores_rendimiento" required>
+            <option value="alto" {% if idea[9] == 'alto' %}selected{% endif %}>Alto</option>
+            <option value="medio" {% if idea[9] == 'medio' %}selected{% endif %}>Medio</option>
+            <option value="bajo" {% if idea[9] == 'bajo' %}selected{% endif %}>Bajo</option>
+        </select>
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <a href="{{ url_for('ideas') }}">Volver</a>
+</body>
+</html>

@@ -1,50 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Idea de Mejora</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Eliminar idea</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Eliminar idea</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        <form action="{{ url_for('eliminar_idea', id_mejora=idea[0]) }}" method="post">
-            <label for="gender">Id Proponente:</label>
-            <input type="text" id="id_proponente" name="id_proponente" value="{{ idea[1] }}" readonly><br><br>
-            <label for="nationality">Id Evaluador:</label>
-            <input type="text" id="id_evaluador" name="id_evaluador"value="{{ idea[2] }}" readonly><br><br>
-            <label for="nationality">Fecha Propuesta:</label>
-            <input type="date" id="fecha_propuesta" name="fecha_propuesta"value="{{ idea[3] }}" readonly><br><br>
-            <label for="nationality">Descripcion Idea:</label>
-            <input type="text" id="descripcion_idea" name="descripcion_idea"value="{{ idea[4] }}" readonly><br><br>
-            <label for="nationality">Estado:</label>
-            <input type="text" id="estado" name="estado"value="{{ idea[5] }}" readonly><br><br>
-            <label for="nationality">Fecha Implementacion:</label>
-            <input type="date" id="fecha_implementacion" name="fecha_implementacion"value="{{ idea[6] }}" readonly><br><br>
-            <label for="nationality">Descripcion Implementacion:</label>
-            <input type="text" id="descripcion_implementacion" name="descripcion_implementacion"value="{{ idea[7] }}" readonly><br><br>
-            <label for="nationality">Fecha Evaluacion:</label>
-            <input type="date" id="fecha_evaluacion" name="fecha_evaluacion"value="{{ idea[8] }}" readonly><br><br>
-            <label for="nationality">Impacto:</label>
-            <input type="text" id="impacto" name="impacto"value="{{ idea[9] }}" readonly><br><br>
-            <label for="nationality">Indicadores Rendimiento:</label>
-            <input type="text" id="indicadores_rendimiento" name="indicadores_rendimiento"value="{{ idea[10] }}" readonly><br><br>
-            <form action="{{ url_for('eliminar_idea', id_mejora=idea[0]) }}" method="post" style="display:inline;">
-                <button type="submit" onclick="return confirm('¿estas seguro de eliminar esta idea? {{idea[1]}}');">Eliminar</button>
-        </form>
-        
-        <br>
-        <a href="{{ url_for('idea') }}">lista de idea</a>
-    </div>
+    <h1>Eliminar Idea de Mejora</h1>
+    <p>¿Está seguro que desea eliminar la siguiente idea?</p>
+    <p>Documento: {{ idea[1] }}</p>
+    <p>Fecha Propuesta: {{ idea[2] }}</p>
+    <p>Descripción de la Idea: {{ idea[3] }}</p>
+    <p>Estado: {{ idea[4] }}</p>
+    <p>Fecha Implementación: {{ idea[5] }}</p>
+    <p>Descripción de la Implementación: {{ idea[6] }}</p>
+    <p>Fecha Evaluación: {{ idea[7] }}</p>
+    <p>Impacto: {{ idea[8] }}</p>
+    <p>Indicadores de Rendimiento: {{ idea[9] }}</p>
+    <form action="{{ url_for('eliminar_idea', id_mejora=idea[0]) }}" method="POST">
+        <button type="submit">Eliminar</button>
+        <a href="{{ url_for('ideas') }}">Cancelar</a>
+    </form>
 </body>
 </html>

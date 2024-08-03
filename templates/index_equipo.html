@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Equipos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Equipos</h1>
+        <form action="{{ url_for('submit') }}" method="POST">
+            <label for="id_equipo">ID del Equipo:</label>
+            <select id="id_equipo" name="id_equipo" required>
+                <option value="3030">3030</option>
+                <option value="0909">0909</option>
+                <option value="2222">2222</option>
+            </select>
+            
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" name="tipo" required>
+                <option value="electrico">Eléctrico</option>
+                <option value="mecanico">Mecánico</option>
+                <option value="automatico">Automático</option>
+                <option value="no_automatico">No Automático</option>
+            </select>
+            
+            <label for="modelo">Modelo:</label>
+            <select id="modelo" name="modelo" required>
+                <option value="nuevo">Nuevo</option>
+                <option value="viejo">Viejo</option>
+            </select>
+            
+            <label for="numero_serie">Número de Serie:</label>
+            <input type="number" id="numero_serie" name="numero_serie" required min="0" max="9999" step="1" placeholder="1234" pattern="\d{4}">
+            
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" required>
+                <option value="bueno">Bueno</option>
+                <option value="medio">Medio</option>
+                <option value="malo">Malo</option>
+                <option value="en_reparacion">En Reparación</option>
+            </select>
+            
+            <button type="submit">Agregar Equipo</button>
+        </form>
+        <a href="{{ url_for('equipos') }}">Ver Equipos</a>
+    </div>
+</body>
+</html>

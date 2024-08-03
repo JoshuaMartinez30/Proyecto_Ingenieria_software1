@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingrese el proveedor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>ingrese el proveedor</title>
 </head>
 <body>
     <div class="container">
@@ -19,22 +18,42 @@
           {% endif %}
         {% endwith %}
         <form action="{{ url_for('submit') }}" method="post">
-            <label for="name">Nombre del proveedor:</label>
+            <label for="Nombre_del_proveedor">Nombre del proveedor:</label>
             <input type="text" id="Nombre_del_proveedor" name="Nombre_del_proveedor" required><br><br>
-            <label for="gender">Contacto:</label>
-            <input type="text" id="Contacto" name="Contacto" required><br><br>
-            <label for="nationality">Producto/Servicio:</label>
+            
+            <label for="Producto_Servicio">Producto/Servicio:</label>
             <input type="text" id="Producto_Servicio" name="Producto_Servicio" required><br><br>
-            <label for="nationality">Historial de desempeño:</label>
-            <input type="text" id="Historial_de_desempeño" name="Historial_de_desempeño" required><br><br>
-            <label for="name">ID del pedido:</label>
-            <input type="text" id="id_pedido" name="id_pedido" required><br><br>
-            <label for="name">Id de la Marca:</label>
-            <input type="text" id="id_marca" name="id_marca" required><br><br>
+            
+            <label for="Historial_de_desempeño">Historial de desempeño:</label>
+            <select id="Historial_de_desempeño" name="Historial_de_desempeño" required>
+                <option value="Malo">Malo</option>
+                <option value="Medio">Medio</option>
+                <option value="Bueno">Bueno</option>
+            </select><br><br>
+
+            <label for="nombre_compañia">Nombre de la Compañia:</label>
+            <input type="text" id="nombre_compañia" name="nombre_compañia" required><br><br>
+            
+            <label for="Telefono">Teléfono:</label>
+            <input type="text" id="Telefono" name="Telefono" required><br><br>
+
+            <label for="Ciudad">Ciudad:</label>
+            <input type="text" id="Ciudad" name="Ciudad" required><br><br>
+
+            <label for="Tipo">Tipo:</label>
+            <select id="Tipo" name="Tipo" required>
+                <option value="Numero de Identidad">Número de Identidad</option>
+                <option value="Pasaporte">Pasaporte</option>
+                <option value="RTN">RTN</option>
+            </select><br><br>
+            
+            <label for="Documento">Documento:</label>
+            <input type="text" id="Documento" name="Documento" required><br><br>
+            
             <input type="submit" value="Guardar">
         </form> 
         <br>
-        <a value="lista de proveedores" href="{{ url_for('proveedores') }}">lista de proveedores</a>
+        <a href="{{ url_for('proveedores') }}">Lista de proveedores</a>
     </div>
 </body>
 </html>

@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Eliminar promocion</title>
+    <title>Eliminar Descuento</title>
 </head>
 <body>
     <div class="container">
-        <h2>Eliminar promocion</h2>
+        <h2>Eliminar Descuento</h2>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <ul>
@@ -18,33 +18,19 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('eliminar_promocion', id_promocion=promocion[0]) }}" method="post">
-            <label for="name">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" value="{{ promocion[1] }}" readonly><br><br>
-            <label for="gender">Descripcion:</label>
-            <input type="text" id="descripcion" name="descripcion" value="{{ promocion[2] }}" readonly><br><br>
-            <label for="select_option">Tipo:</label>
-            <select id="tipo" name="tipo" value="{{ promocion[3] }}" readonly><br><br>
-              <option value="promocion">Promocion</option>
-              <option value="descuento">Descuento</option>
-            </select><br><br>
-            <label for="nationality">Valor:</label>
-            <input type="text" id="valor" name="valor" value="{{ promocion[4] }}" readonly><br><br>
-            <label for="nationality">Fecha Inicio:</label>
-            <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ promocion[5] }}" readonly><br><br>
-            <label for="nationality">Fecha Final:</label>
-            <input type="date" id="fecha_final" name="fecha_final" value="{{ promocion[6] }}" readonly><br><br>
-            <label for="select_option">Estado:</label>
-            <select id="estado_promocion" name="estado_promocion" value="{{ promocion[7] }}" readonly><br><br>
-              <option value="Activo">Activo</option>
-              <option value="Inactivo">Inactivo</option>
-            </select><br><br>
-            <form action="{{ url_for('eliminar_promocion', id_promocion=promocion[0]) }}" method="post" style="display:inline;">
-                <button type="submit" onclick="return confirm('estas seguro de eliminar esta promocion? {{promocion[1]}}');">Eliminar</button>
-        </form>
         
+        <form action="{{ url_for('eliminar_promocion', id_promocion=promocion[0]) }}" method="post">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ promocion[1] }}" readonly><br><br>
+                        
+            <label for="valor">Valor:</label>
+            <input type="text" id="valor" name="valor" value="{{ promocion[2] }}" readonly><br><br>
+            
+            <button type="submit" onclick="return confirm('¿Estás seguro de eliminar esta promoción? {{ promocion[1] }}');">Eliminar</button>
+        </form>
+
         <br>
-        <a href="{{ url_for('promocion') }}">lista de promocion</a>
+        <a href="{{ url_for('promocion') }}">Lista de Descuentos<</a>
     </div>
 </body>
 </html>

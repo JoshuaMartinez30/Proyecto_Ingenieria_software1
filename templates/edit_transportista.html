@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Transportista</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Transportista</h1>
+        <form id="editForm" method="POST" action="{{ url_for('edit_transportista', id_transportista=transportista[0]) }}">
+            <label>Nombre de la Empresa:</label>
+            <input type="text" name="nombre_empresa" value="{{ transportista[1] }}" required>
+            <label>Teléfono:</label>
+            <input type="text" name="Telefono" id="Telefono" value="{{ transportista[2] }}" required>
+            <button type="submit">Guardar Cambios</button>
+        </form>
+        <br>
+        <a href="#" onclick="closeWindow()">Cerrar ventana</a>
+    </div>
+
+    <script>
+        function closeWindow() {
+            window.close();
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Evita el envío del formulario por defecto
+
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    closeWindow();
+                    if (window.opener) {
+                        window.opener.location.reload(); // Recarga la ventana principal
+                    }
+                } else {
+                    throw new Error('Error al actualizar el transportista');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Función para formatear el número de teléfono con un guion automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            var telefonoInput = document.getElementById('Telefono');
+            if (telefonoInput) {
+                telefonoInput.addEventListener('input', function(event) {
+                    var value = event.target.value.replace(/[^0-9]/g, ''); // Solo números
+                    if (value.length > 4) {
+                        value = value.slice(0, 4) + '-' + value.slice(4, 8);
+                    }
+                    event.target.value = value;
+                });
+
+                // Asegura que el valor inicial tenga el guion si es un número válido
+                var initialValue = telefonoInput.value.replace(/[^0-9]/g, '');
+                if (initialValue.length === 8) {
+                    telefonoInput.value = initialValue.slice(0, 4) + '-' + initialValue.slice(4, 8);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

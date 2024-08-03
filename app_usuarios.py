@@ -27,9 +27,9 @@ def insert_user(primer_nombre, primer_apellido, correo, password):
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "INSERT INTO usuarios (primer_nombre, primer_apellido, correo, password, usuario_activo) VALUES (%s, %s, %s, %s, %s)"
+    query = "INSERT INTO usuarios (primer_nombre, primer_apellido, correo, password, usuario_activo, super_usuario) VALUES (%s, %s, %s, %s, %s, %s)"
     hashed_password = generate_password_hash(password)
-    values = (primer_nombre, primer_apellido, correo, hashed_password, 1)
+    values = (primer_nombre, primer_apellido, correo, hashed_password, 1, 1)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -41,51 +41,14 @@ def insert_user(primer_nombre, primer_apellido, correo, password):
         cursor.close()
         connection.close()
 
-def get_usuarios(page, per_page):
-    connection = create_connection()
-    if connection is None:
-        return [], 0
-    cursor = connection.cursor()
-    offset = (page - 1) * per_page
-    query = "SELECT SQL_CALC_FOUND_ROWS * FROM usuarios LIMIT %s OFFSET %s"
-    try:
-        cursor.execute(query, (per_page, offset))
-        usuarios = cursor.fetchall()
-        cursor.execute("SELECT FOUND_ROWS()")
-        total_usuarios = cursor.fetchone()[0]
-        return usuarios, total_usuarios
-    except Error as e:
-        print(f"The error '{e}' occurred")
-        return [], 0
-    finally:
-        cursor.close()
-        connection.close()
-
-def get_usuarios_by_id(id_usuario):
-    connection = create_connection()
-    if connection is None:
-        return None
-    cursor = connection.cursor()
-    query = "SELECT * FROM usuarios WHERE id_usuario = %s"
-    try:
-        cursor.execute(query, (id_usuario,))
-        usuarios = cursor.fetchone()
-        return usuarios
-    except Error as e:
-        print(f"The error '{e}' occurred")
-        return None
-    finally:
-        cursor.close()
-        connection.close()
-
-def update_user(id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo):
+def update_user(id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo, super_usuario):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "UPDATE usuarios SET primer_nombre = %s, primer_apellido = %s, correo = %s, password = %s, usuario_activo = %s WHERE id_usuario = %s"
+    query = "UPDATE usuarios SET primer_nombre = %s, primer_apellido = %s, correo = %s, password = %s, usuario_activo = %s, super_usuario = %s WHERE id_usuario = %s"
     hashed_password = generate_password_hash(password)
-    values = (primer_nombre, primer_apellido, correo, hashed_password, usuario_activo, id_usuario)
+    values = (primer_nombre, primer_apellido, correo, hashed_password, usuario_activo, super_usuario, id_usuario)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -114,27 +77,15 @@ def delete_user(id_usuario):
         cursor.close()
         connection.close()
 
-def search_users(search_query, search_field, page, per_page):
+def get_usuarios(page, per_page):
     connection = create_connection()
     if connection is None:
         return [], 0
     cursor = connection.cursor()
     offset = (page - 1) * per_page
-    query = """
-    SELECT SQL_CALC_FOUND_ROWS * 
-    FROM usuarios 
-    WHERE {} LIKE %s 
-    LIMIT %s OFFSET %s
-    """.format(
-        {
-            'nombre': 'primer_nombre',
-            'apellido': 'primer_apellido',
-            'correo': 'correo'
-        }.get(search_field, 'primer_nombre')  # Default to 'primer_nombre' if no valid field
-    )
-    values = (f'%{search_query}%', per_page, offset)
+    query = "SELECT SQL_CALC_FOUND_ROWS id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo, super_usuario FROM usuarios LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query, values)
+        cursor.execute(query, (per_page, offset))
         usuarios = cursor.fetchall()
         cursor.execute("SELECT FOUND_ROWS()")
         total_usuarios = cursor.fetchone()[0]
@@ -146,6 +97,40 @@ def search_users(search_query, search_field, page, per_page):
         cursor.close()
         connection.close()
 
+def search_usuarios(search_criteria, search_query, page, per_page):
+    connection = create_connection()
+    if connection is None:
+        return [], 0
+    cursor = connection.cursor()
+    offset = (page - 1) * per_page
+    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM usuarios WHERE {search_criteria} LIKE %s LIMIT %s OFFSET %s"
+    values = (f'%{search_query}%', per_page, offset)
+    try:
+        cursor.execute(query, values)
+        usuarios = cursor.fetchall()
+        cursor.execute(f"SELECT FOUND_ROWS()")
+        total_count = cursor.fetchone()[0]
+        return usuarios, total_count
+    except Error as e:
+        print(f"The error '{e}' occurred")
+        return [], 0
+    finally:
+        cursor.close()
+        connection.close()
+
+def get_usuarios_by_id(id_usuario):
+    connection = create_connection()
+    if connection is None:
+        return None
+    cursor = connection.cursor()
+    query = "SELECT id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo, super_usuario FROM usuarios WHERE id_usuario = %s"
+    cursor.execute(query, (id_usuario,))
+    usuarios = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return usuarios
+
+ 
 
 def validate_user_data(primer_nombre, primer_apellido, correo, password):
     if not primer_nombre or not primer_apellido or not correo or not password:
@@ -174,18 +159,19 @@ def index_usuarios():
 
 @app_usuarios.route('/usuarios')
 def usuarios():
-    search_query = request.args.get('search', '')
-    search_field = request.args.get('search_field', 'nombre')
-    page = request.args.get('page', 1, type=int)
-    per_page = 5
+    search_criteria = request.args.get('search_criteria', 'ciudad')
+    search_query = request.args.get('search_query', '')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 5))
 
     if search_query:
-        usuarios, total_usuarios = search_users(search_query, search_field, page, per_page)
+        usuarios, total_count = search_usuarios(search_criteria, search_query, page, per_page)
     else:
-        usuarios, total_usuarios = get_usuarios(page, per_page)
+        usuarios, total_count = get_usuarios(page, per_page)
+    
+    total_pages = (total_count + per_page - 1) // per_page
 
-    total_pages = (total_usuarios + per_page - 1) // per_page
-    return render_template('usuarios.html', usuarios=usuarios, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_usuarios=total_usuarios, total_pages=total_pages)
+    return render_template('usuarios.html', usuarios=usuarios, search_criteria=search_criteria, search_query=search_query, page=page, total_pages=total_pages, per_page=per_page)
 
 @app_usuarios.route('/submit', methods=['POST'])
 def submit():
@@ -214,13 +200,14 @@ def edit_usuarios(id_usuario):
         correo = request.form['correo']
         password = request.form['password']
         usuario_activo = request.form['usuario_activo']
+        super_usuario = request.form['super_usuario']
 
         valid, message = validate_user_data(primer_nombre, primer_apellido, correo, password)
         if not valid:
             flash(message)
             return redirect(url_for('edit_usuarios', id_usuario=id_usuario))
 
-        if update_user(id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo):
+        if update_user(id_usuario, primer_nombre, primer_apellido, correo, password, usuario_activo, super_usuario):
             flash('Usuario actualizado exitosamente.')
         else:
             flash('Ocurrió un error al actualizar el usuario.')
@@ -233,13 +220,23 @@ def edit_usuarios(id_usuario):
         return redirect(url_for('usuarios'))
     return render_template('edit_usuarios.html', usuarios=usuarios)
 
-@app_usuarios.route('/eliminar_usuarios/<int:id_usuario>')
+
+@app_usuarios.route('/eliminar_usuarios/<int:id_usuario>', methods=['GET', 'POST'])
 def eliminar_usuarios(id_usuario):
-    if delete_user(id_usuario):
-        flash('Usuario eliminado exitosamente.')
-    else:
-        flash('Ocurrió un error al eliminar el usuario.')
-    return redirect(url_for('usuarios'))
+    if request.method == 'POST':
+        if delete_user(id_usuario):
+            flash('¡usuarios eliminada exitosamente!')
+            return redirect(url_for('usuarios'))
+        else:
+            flash('Ocurrió un error al eliminar la usuarios. Por favor, intente nuevamente.')
+            return redirect(url_for('usuarios'))
+
+    usuarios = get_usuarios_by_id(id_usuario)
+    if usuarios is None:
+        flash('usuarios no encontrada.')
+        return redirect(url_for('usuarios'))
+
+    return render_template('eliminar_usuarios.html', usuarios=usuarios)
 
 if __name__ == '__main__':
-    app_usuarios.run(debug=True, port=5012)
+    app_usuarios.run(debug=True)

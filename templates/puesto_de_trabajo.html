@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>puesto de trabajos</title>
+</head>
+<body>
+    <div class="container">
+    <h2>puesto de trabajos</h2>
+
+    <!-- Formulario de búsqueda -->
+    <form method="get" action="{{ url_for('puesto_de_trabajo') }}">
+        <input type="text" name="search_query" placeholder="Buscar..." value="{{ search_query }}">
+        
+        <!-- Menú desplegable para seleccionar el campo de búsqueda -->
+        <select name="search_criteria">
+            <option value="id_puesto" {% if search_criteria == 'id_puesto' %}selected{% endif %}>ID Puesto</option>
+            <option value="documento" {% if search_criteria == 'documento' %}selected{% endif %}>Documento</option>
+            <option value="puesto_trabajo" {% if search_criteria == 'puesto_trabajo' %}selected{% endif %}>Puesto Trabajo</option>
+            <option value="salario" {% if search_criteria == 'salario' %}selected{% endif %}>salario</option>
+        </select>
+        
+        <button type="submit">Buscar</button>
+    </form>
+
+    <br>
+     <!-- Formulario para seleccionar el número de elementos por página -->
+     <form method="get" action="{{ url_for('puesto_de_trabajo') }}">
+        <label for="per_page">Elementos por página:</label>
+        <select name="per_page" id="per_page" onchange="this.form.submit()">
+            <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+        </select>
+        <input type="hidden" name="search_query" value="{{ search_query }}">
+        <input type="hidden" name="search_criteria" value="{{ search_criteria }}">
+    </form>
+
+    <br>
+    <a class="button-link ing"  href="{{ url_for('index_puesto_de_trabajo') }}">Ingresar puesto de trabajos</a>
+    <a class="button-link ing2"  href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+    <!-- Tabla de resultados -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID Puesto</th>
+                <th>Documento</th>
+                <th>Fecha</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin</th>
+                <th>Puesto Trabajo</th>
+                <th>Salario</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for puesto_de_trabajo in puesto_de_trabajo %}
+            <tr>
+                <td>{{ puesto_de_trabajo[0] }}</td>
+                <td>{{ puesto_de_trabajo[7] }}</td>  <!-- documento -->
+                <td>{{ puesto_de_trabajo[2] }}</td>
+                <td>{{ puesto_de_trabajo[3] }}</td>
+                <td>{{ puesto_de_trabajo[4] }}</td>
+                <td>{{ puesto_de_trabajo[5] }}</td>
+                <td>{{ puesto_de_trabajo[6] }}</td>
+                
+                <td>
+                    <a class="button-link baa" onclick="openEditWindow('{{ url_for('edit_puesto_de_trabajo', id_puesto=puesto_de_trabajo[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a></button>
+                    <a class="button-link bee" href="{{ url_for('eliminar_puesto_de_trabajo', id_puesto=puesto_de_trabajo[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+   <!-- Controles de paginación -->
+   <div class="pagination">
+    {% if page > 1 %}
+    <a href="{{ url_for('puesto_de_trabajo', search_criteria=search_criteria, search_query=search_query, page=page-1, per_page=per_page) }}">« Anterior</a>
+    {% endif %}
+    {% for p in range(1, total_pages + 1) %}
+    <a href="{{ url_for('puesto_de_trabajo', search_criteria=search_criteria, search_query=search_query, page=p, per_page=per_page) }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
+    {% endfor %}
+    {% if page < total_pages %}
+    <a href="{{ url_for('puesto_de_trabajo', search_criteria=search_criteria, search_query=search_query, page=page+1, per_page=per_page) }}">Siguiente »</a>
+    {% endif %}
+    </div>
+
+    <script>
+        function openEditWindow(url) {
+            window.open(url, "_blank", "width=600,height=400");
+        }
+    </script>
+    </div>
+</body>
+</html>

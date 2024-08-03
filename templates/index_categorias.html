@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar Categoría</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Ingresar Categoría</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit_categoria') }}" method="post">
+            <label for="nombre_categoria">Nombre de la Categoría:</label>
+            <input type="text" id="nombre_categoria" name="nombre_categoria" required><br><br>
+            
+            <label for="Descripcion">Descripción:</label>
+            <input type="text" id="Descripcion" name="Descripcion" required><br><br>
+            
+            <input type="submit" value="Guardar">
+        </form> 
+        <br>
+        <a href="{{ url_for('categorias') }}">Lista de categorías</a>
+    </div>
+</body>
+</html>

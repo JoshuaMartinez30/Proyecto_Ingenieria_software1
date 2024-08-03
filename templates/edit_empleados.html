@@ -18,7 +18,7 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form id="editForm" action="{{ url_for('edit_empleado', id_empleado=empleado[0]) }}" method="post" target="hiddenFrame">
+        <form id="editForm" action="{{ url_for('edit_empleados', id_empleado=empleado[0]) }}" method="post" target="hiddenFrame">
            <label for="nombre">Nombre:</label>
            <input type="text" id="nombre" name="nombre" value="{{ empleado[1] }}" required><br><br>
            <label for="apellido">Apellido:</label>
@@ -26,17 +26,19 @@
            <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ empleado[3] }}" required><br><br>
            <label for="puesto">Puesto de Trabajo:</label>
-           <input type="text" id="puesto" name="puesto" value="{{ empleado[4] }}" required><br><br>
+           <input type="text" id="puesto_trabajo" name="puesto_trabajo" value="{{ empleado[4] }}" required><br><br>
            <label for="fecha_contratacion">Fecha de Contratación:</label>
            <input type="date" id="fecha_contratacion" name="fecha_contratacion" value="{{ empleado[5] }}" required><br><br>
            <label for="sucursal">Sucursal:</label>
            <input type="text" id="sucursal" name="sucursal" value="{{ empleado[6] }}" required><br><br>
-           <label for="salario">Salario:</label>
-           <input type="text" id="salario" name="salario" value="{{ empleado[7] }}" required><br><br>
            <label for="email">Email:</label>
-           <input type="email" id="email" name="email" value="{{ empleado[8] }}"><br><br>
+           <input type="email" id="email" name="email" value="{{ empleado[7] }}"><br><br>
            <label for="telefono">Teléfono:</label>
-           <input type="text" id="telefono" name="telefono" value="{{ empleado[9] }}"><br><br>
+           <input type="text" id="telefono" name="telefono" value="{{ empleado[8] }}"><br><br>
+           <label for="telefono">Tipo:</label>
+           <input type="text" id="tipo" name="tipo" value="{{ empleado[9] }}"><br><br>           
+           <label for="telefono">Documento:</label>
+           <input type="text" id="documento" name="documento" value="{{ empleado[10] }}"><br><br>
            <input type="submit" value="Actualizar">
       </form>
       <iframe name="hiddenFrame" style="display:none;" onload="handleFrameLoad()"></iframe>

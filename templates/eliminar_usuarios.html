@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Eliminar usuarios</title>
+    <title>Eliminar Usuarios</title>
 </head>
 <body>
     <div class="container">
@@ -32,8 +32,13 @@
               <option value="1">1</option>
               <option value="0">0</option>
             </select><br><br>
-            <form action="{{ url_for('eliminar_usuarios', id_usuario=usuarios[0]) }}" method="post" style="display:inline;">
-                <button type="submit" onclick="return confirm('estas seguro de eliminar este producto del usuarios? {{usuarios[1]}}');">Eliminar</button>
+            <label for="select_option">Super Usuario:</label>
+            <select id="super_usuario" name="super_usuario" value="{{ usuarios[6] }}" required><br><br>
+              <option value="1">1</option>
+              <option value="0">0</option>
+            </select><br><br>
+
+                <button type="submit" onclick="return confirm('estas seguro de eliminar este user de la lista de usuarios? {{usuarios[0]}}?');">Eliminar</button>
         </form>
         
         <br>

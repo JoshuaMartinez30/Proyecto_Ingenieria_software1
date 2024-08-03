@@ -1,99 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ideas de Mejora</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Ingrese su producto al idea</title>
     <script>
         function validarFormulario() {
-            var inputs = document.querySelectorAll('input[type="text"]');
-            var valid = true;
+            var documento = document.getElementById('documento').value;
+            var estado = document.getElementById('estado').value;
+            var descripcionIdea = document.getElementById('descripcion_idea').value;
+            var descripcionImplementacion = document.getElementById('descripcion_implementacion').value;
 
-            inputs.forEach(function(input) {
-                var value = input.value;
-
-                // No se permiten caracteres especiales
-                if (/[^a-zA-Z0-9 ]/.test(value)) {
-                    alert("No se permiten caracteres especiales en " + input.name);
-                    valid = false;
-                }
-
-                // No se permiten letras repetidas más de dos veces consecutivas
-                if (/([a-zA-Z])\1\1/.test(value)) {
-                    alert("No se permite repetir la misma letra más de dos veces consecutivas en " + input.name);
-                    valid = false;
-                }
-
-                // Longitud mínima de 3 caracteres
-                if (value.length < 3) {
-                    alert(input.name + " debe tener al menos 3 caracteres");
-                    valid = false;
-                }
-
-                // No se permite repetir la misma vocal dos veces consecutivas
-                if (/([aeiouAEIOU])\1/.test(value)) {
-                    alert("No se permite repetir la misma vocal dos veces consecutivas en " + input.name);
-                    valid = false;
-                }
-
-                
-            });
-             // Validación de fechas
-             var fechaPropuesta = new Date(document.getElementById('fecha_propuesta').value);
-             var fechaImplementacion = new Date(document.getElementById('fecha_implementacion').value);
-             var fechaEvaluacion = new Date(document.getElementById('fecha_evaluacion').value);
-
-            if (fechaImplementacion < fechaPropuesta) {
-            alert("La fecha de implementación no puede ser antes que la fecha propuesta");
-            valid = false;
-            }
-            if (fechaEvaluacion < fechaPropuesta || fechaEvaluacion < fechaImplementacion) {
-            alert("La fecha de evaluación no puede ser antes que la fecha propuesta ni la fecha de implementación");
-            valid = false;
+            // Validación de Documento
+            var documentoRegex = /^[01][0-9]{12}$/;
+            if (!documentoRegex.test(documento)) {
+                alert('El documento debe ser un número positivo de 13 dígitos y comenzar con 0 o 1.');
+                return false;
             }
 
-            return valid;
+            // Validación de Estado
+            var estadosValidos = ['revisada', 'no revisada'];
+            if (!estadosValidos.includes(estado)) {
+                alert('El estado debe ser "revisada" o "no revisada".');
+                return false;
+            }
+
+            // Validación de Descripción
+            var descripcionRegex = /^[a-z]{8,20}$/;
+            var repetidoRegex = /(.)\1{2,}/;
+            if (!descripcionRegex.test(descripcionIdea) || repetidoRegex.test(descripcionIdea)) {
+                alert('La descripción de la idea debe tener entre 8 y 20 caracteres, solo minúsculas, sin números y sin letras o signos repetidos tres veces seguidas.');
+                return false;
+            }
+
+            if (!descripcionRegex.test(descripcionImplementacion) || repetidoRegex.test(descripcionImplementacion)) {
+                alert('La descripción de la implementación debe tener entre 8 y 20 caracteres, solo minúsculas, sin números y sin letras o signos repetidos tres veces seguidas.');
+                return false;
+            }
+
+            return true;
         }
     </script>
 </head>
 <body>
-    <div class="container">
-        <h2>Ingrese una idea</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        <form onsubmit="return validarFormulario()" action="{{ url_for('submit') }}" method="post">
-            <label for="id_proponente">Id Proponente:</label>
-            <input type="number" id="id_proponente" name="id_proponente" min="0" required><br><br>
-            <label for="id_evaluador">Id Evaluador:</label>
-            <input type="number" id="id_evaluador" name="id_evaluador" min="0" required><br><br>
-            <label for="fecha_propuesta">Fecha Propuesta:</label>
-            <input type="date" id="fecha_propuesta" name="fecha_propuesta" required><br><br>
-            <label for="descripcion_idea">Descripcion Idea:</label>
-            <input type="text" id="descripcion_idea" name="descripcion_idea" required><br><br>
-            <label for="estado">Estado:</label>
-            <input type="text" id="estado" name="estado" required><br><br>
-            <label for="fecha_implementacion">Fecha Implementacion:</label>
-            <input type="date" id="fecha_implementacion" name="fecha_implementacion" required><br><br>
-            <label for="descripcion_implementacion">Descripcion Implementacion:</label>
-            <input type="text" id="descripcion_implementacion" name="descripcion_implementacion" required><br><br>
-            <label for="fecha_evaluacion">Fecha Evaluacion:</label>
-            <input type="date" id="fecha_evaluacion" name="fecha_evaluacion" required><br><br>
-            <label for="impacto">Impacto:</label>
-            <input type="text" id="impacto" name="impacto" required><br><br>
-            <label for="indicadores_rendimiento">Indicadores Rendimiento:</label>
-            <input type="text" id="indicadores_rendimiento" name="indicadores_rendimiento" required><br><br>
-            <input type="submit" value="Guardar">
-        </form>
-        <br>
-        <a href="{{ url_for('idea') }}">Lista de productos en el idea</a>
-    </div>
+    <h1>Formulario de Ideas de Mejora</h1>
+    <form action="{{ url_for('submit') }}" method="POST" onsubmit="return validarFormulario()">
+        <label for="documento">Documento:</label>
+        <input type="text" id="documento" name="documento" pattern="^[01][0-9]{12}$" title="El documento debe ser un número positivo de 13 dígitos y comenzar con 0 o 1." required>
+        
+        <label for="fecha_propuesta">Fecha Propuesta:</label>
+        <input type="date" id="fecha_propuesta" name="fecha_propuesta" required>
+        
+        <label for="descripcion_idea">Descripción de la Idea:</label>
+        <textarea id="descripcion_idea" name="descripcion_idea" required></textarea>
+        
+        <label for="estado">Estado:</label>
+        <select id="estado" name="estado" required>
+            <option value="revisada">Revisada</option>
+            <option value="no revisada">No Revisada</option>
+        </select>
+        
+        <label for="fecha_implementacion">Fecha Implementación:</label>
+        <input type="date" id="fecha_implementacion" name="fecha_implementacion" required>
+        
+        <label for="descripcion_implementacion">Descripción de la Implementación:</label>
+        <textarea id="descripcion_implementacion" name="descripcion_implementacion" required></textarea>
+        
+        <label for="fecha_evaluacion">Fecha Evaluación:</label>
+        <input type="date" id="fecha_evaluacion" name="fecha_evaluacion" required>
+        
+        <label for="impacto">Impacto:</label>
+        <select id="impacto" name="impacto" required>
+            <option value="a futuro">A Futuro</option>
+            <option value="inmediato">Inmediato</option>
+        </select>
+        
+        <label for="indicadores_rendimiento">Indicadores de Rendimiento:</label>
+        <select id="indicadores_rendimiento" name="indicadores_rendimiento" required>
+            <option value="bajo">Bajo</option>
+            <option value="medio">Medio</option>
+            <option value="alto">Alto</option>
+        </select>
+        
+        <button type="submit">Enviar</button>
+    </form>
+    <a href="{{ url_for('ideas') }}">Ver Ideas</a>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
 </body>
 </html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Agregar Producto</title>
+</head>
+<body>
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    <h2>Agregar Producto</h2>
+    <form method="post" action="{{ url_for('submit') }}">
+        <label for="nombre">Nombre del Producto:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        
+        <label for="id_categoria">Nombre Categoria:</label>
+        <select id="id_categoria" name="id_categoria" required>
+            {% for categoria in categorias %}
+            <option value="{{ categoria[0] }}">{{ categoria[1] }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="id_proveedor">Nombre Proveedor:</label>
+        <select id="id_proveedor" name="id_proveedor" required>
+            {% for proveedor in proveedores %}
+            <option value="{{ proveedor[0] }}">{{ proveedor[1] }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="original_precio">Precio Original:</label>
+        <input type="text" id="original_precio" name="original_precio" required>
+    
+        <label for="id_impuesto">Tasa Impuesto:</label>
+        <select id="id_impuesto" name="id_impuesto" required>
+            {% for impuesto in impuesto %}
+            <option value="{{ impuesto[0] }}">{{ impuesto[1] }}</option>
+            {% endfor %}
+        </select>
+    
+        <label for="id_promocion">Descuento:</label>
+        <select id="id_promocion" name="id_promocion" required>
+            {% for promocion in promocion %}
+            <option value="{{ promocion[0] }}">{{ promocion[1] }}</option>
+            {% endfor %}
+        </select>
+    
+        <label for="id_garantia">Duración:</label>
+        <select id="id_garantia" name="id_garantia" required>
+            {% for garantia in garantia %}
+            <option value="{{ garantia[0] }}">{{ garantia[1] }}</option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <br>
+    <a class="ing" href="{{ url_for('producto') }}">Lista de Productos</a>
+    <a class="ing" href="{{ url_for('index_producto') }}">INICIO</a>
+    </div>
+</body>
+</html>

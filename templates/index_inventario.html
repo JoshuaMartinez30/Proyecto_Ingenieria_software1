@@ -4,35 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>ingrese su producto al inventario</title>
+    <title>Agregar Producto al inventario</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Ingrese su producto al inventario</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
+    <h2>Agregar Producto al inventario</h2>
+    <form method="post" action="{{ url_for('submit') }}">
+        
+        <label for="nombre">Nombre del Producto:</label>
+        <select id="nombre" name="nombre" required>
+            {% for producto in producto %}
+            <option value="{{ producto[1] }}">{{ producto[1] }}</option>
             {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        <form action="{{ url_for('submit') }}" method="post">
-            <label for="name">Nombre del producto:</label>
-            <input type="text" id="nombre_del_producto" name="nombre_del_producto" required><br><br>
-            <label for="gender">Descripcion:</label>
-            <input type="text" id="descripcion" name="descripcion" required><br><br>
-            <label for="nationality">Cantidad en stock:</label>
-            <input type="text" id="cantidad_en_stock" name="cantidad_en_stock" required><br><br>
-            <label for="nationality">Stock Minimo:</label>
-            <input type="text" id="stock_minimo" name="stock_minimo" required><br><br>
-            <label for="nationality">Stock Maximo:</label>
-            <input type="text" id="stock_maximo" name="stock_maximo" required><br><br>
-            <input type="submit" value="Guardar">
-        </form>
-        <br>
-        <a value="lista de productos en el inventario" href="{{ url_for('inventario') }}">lista de productos en el inventario</a>
-    </div>
+        </select>
+    
+        <label for="nombre_categoria">Nombre Categoria:</label>
+        <select id="nombre_categoria" name="nombre_categoria" required>
+            {% for categoria in categorias %}
+            <option value="{{ categoria[1] }}">{{ categoria[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="cantidad_en_stock">Cantidad en Stock:</label>
+        <input type="text" id="cantidad_en_stock" name="cantidad_en_stock" required>
+
+        <label for="stock_minimo">Stock Minimo:</label>
+        <input type="text" id="stock_minimo" name="stock_minimo" required>
+
+        <label for="stock_maximo">Stock Maximo:</label>
+        <input type="text" id="stock_maximo" name="stock_maximo" required>
+    
+        <button type="submit">Agregar inventario</button>
+    </form>
+
+    <br>
+    <a class="ing" href="{{ url_for('inventario') }}">Lista de inventarios</a>
+    <a class="ing" href="{{ url_for('index_inventario') }}">INICIO</a>
+
 </body>
 </html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar Seguimiento de Envío</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Ingrese el Seguimiento de Envío</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit_seguimiento') }}" method="post">
+            <label for="id_pedido">Pedido:</label>
+            <select id="id_pedido" name="id_pedido" required>
+                {% for pedido in pedidos %}
+                    <option value="{{ pedido[0] }}">{{ pedido[0] }}</option>
+                {% endfor %}
+            </select><br><br>
+
+            <label for="fecha_envio">Fecha de Envío:</label>
+            <input type="date" id="fecha_envio" name="fecha_envio" required value="{{ today }}"><br><br>
+
+            <label for="fecha_entrega_estimada">Fecha Estimada de Entrega:</label>
+            <input type="date" id="fecha_entrega_estimada" name="fecha_entrega_estimada" required><br><br>
+
+            <label for="fecha_entrega_real">Fecha Real de Entrega:</label>
+            <input type="date" id="fecha_entrega_real" name="fecha_entrega_real"><br><br>
+
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" required>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Enviado">Enviado</option>
+                <option value="Recibido">Recibido</option>
+                <option value="Completado">Completado</option>
+                <option value="Cancelado">Cancelado</option>
+                <option value="Devolucion">Devolucion</option>
+                <option value="Rechazado">Rechazado</option>
+            </select><br><br>
+
+            <label for="id_transportista">Transportista:</label>
+            <select id="id_transportista" name="id_transportista" required>
+                {% for transportista in transportistas %}
+                    <option value="{{ transportista[0] }}">{{ transportista[1] }}</option>
+                {% endfor %}
+            </select><br><br>
+
+            <input type="submit" value="Guardar">
+        </form> 
+        <br>
+        <a href="{{ url_for('seguimientos') }}">Lista de seguimientos</a>
+    </div>
+</body>
+</html>

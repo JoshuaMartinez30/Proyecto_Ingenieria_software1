@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Histórico de Empleados</title>
+</head>
+<body>
+    <div class="container">
+    <h1>Histórico de Empleados</h1>
+    
+    <div class="button-container">
+        <a class="button-link ing" href="{{ url_for('index_empleados') }}">Ingresar empleados</a>
+        <a class="button-link ing" href="{{ url_for('empleados') }}">Lista de empleados</a>
+        <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    </div>
+    
+    {% if historicos %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ID Empleado</th>
+                <th>Acciones</th>
+                <th>Fecha</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for historico in historicos %}
+            <tr>
+                <td>{{ historico[0] }}</td>
+                <td>{{ historico[1] }}</td>
+                <td>{{ historico[2] }}</td>
+                <td>{{ historico[3] }}</td>
+                <td>{{ historico[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No hay registros históricos de empleados disponibles.</p>
+    {% endif %}
+
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('historico_empleados', page=page-1) }}">&laquo; Anterior</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('historico_empleados', page=p) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="{{ url_for('historico_empleados', page=page+1) }}">Siguiente &raquo;</a>
+        {% endif %}
+    </div>
+    </div>
+</body>
+</html>

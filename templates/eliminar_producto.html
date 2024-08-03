@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar Productos</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar Productos</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('eliminar_producto', id_producto=producto[0]) }}" method="post">
+          <label for="id_producto">ID Producto:</label>
+          <input type="text" id="id_producto" name="id_producto" value="{{ producto[0] }}" readonly><br><br>
+          <label for="nombre">Nombre:</label>
+          <input type="text" id="nombre" name="nombre" value="{{ producto[1] }}" readonly><br><br>
+          <label for="nombre_categoria">Nombre Categoria:</label>
+          <input type="text" id="nombre_categoria" name="nombre_categoria" value="{{ producto[2] }}" readonly><br><br>
+          <label for="id_categoria">ID Categoria:</label>
+          <input type="text" id="id_categoria" name="id_categoria" value="{{ producto[3] }}" readonly><br><br>
+          <label for="id_proveedor">ID Proveedor:</label>
+          <input type="text" id="id_proveedor" name="id_proveedor" value="{{ producto[4] }}" readonly><br><br>
+          <label for="Nombre_del_proveedor">Nombre Proveedor:</label>
+          <input type="text" id="Nombre_del_proveedor" name="Nombre_del_proveedor" value="{{ producto[5] }}" readonly><br><br>
+          <label for="original_precio">Precio Original:</label>
+          <input type="text" id="original_precio" name="original_precio" value="{{ producto[6] }}" readonly><br><br>
+          <br>
+          
+          <button type="submit" onclick="return confirm('¿Está seguro de eliminar este producto? ID: {{ producto[0] }}');">Eliminar</button>
+      </form>
+      
+        <br>
+        <a href="{{ url_for('producto') }}">Lista de Productos</a>
+    </div>
+</body>
+</html>

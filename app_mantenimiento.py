@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
-from mysql.connector import Error
 import re
+from mysql.connector import Error
 
 app_mantenimiento = Flask(__name__)
 app_mantenimiento.secret_key = 'your_secret_key'
@@ -16,45 +16,44 @@ def create_connection():
             database="proyecto_is1"
         )
         if connection.is_connected():
-            print("Connection to MySQL DB successful")
+            print("Conexión exitosa a la base de datos MySQL")
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
     return connection
 
-def insert_user(id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo):
+def insert_mantenimiento(id_equipo, fecha, tipo, detalles, estado, documento):
     connection = create_connection()
     if connection is None:
-        return
+        return False
     cursor = connection.cursor()
-    query = "INSERT INTO mantenimiento_equipos (id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-    values = (id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo)
+    query = "INSERT INTO mantenimiento_equipo (id_equipo, fecha, tipo, detalles, estado, documento) VALUES (%s, %s, %s, %s, %s, %s)"
+    values = (id_equipo, fecha, tipo, detalles, estado, documento)
     try:
         cursor.execute(query, values)
         connection.commit()
         return True
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
         return False
     finally:
         cursor.close()
         connection.close()
 
-
-def get_mantenimiento(page, per_page):
+def get_mantenimientos(page, per_page):
     connection = create_connection()
     if connection is None:
         return [], 0
     cursor = connection.cursor()
     offset = (page - 1) * per_page
-    query = "SELECT SQL_CALC_FOUND_ROWS * FROM mantenimiento_equipos LIMIT %s OFFSET %s"
+    query = "SELECT SQL_CALC_FOUND_ROWS * FROM mantenimiento_equipo LIMIT %s OFFSET %s"
     try:
         cursor.execute(query, (per_page, offset))
-        mantenimiento = cursor.fetchall()
+        mantenimientos = cursor.fetchall()
         cursor.execute("SELECT FOUND_ROWS()")
-        total_mantenimiento = cursor.fetchone()[0]
-        return mantenimiento, total_mantenimiento
+        total_mantenimientos = cursor.fetchone()[0]
+        return mantenimientos, total_mantenimientos
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
         return [], 0
     finally:
         cursor.close()
@@ -65,134 +64,161 @@ def get_mantenimiento_by_id(id_mantenimiento):
     if connection is None:
         return None
     cursor = connection.cursor()
-    query = "SELECT * from mantenimiento_equipos WHERE id_mantenimiento = %s"
+    query = "SELECT * FROM mantenimiento_equipo WHERE id_mantenimiento = %s"
     try:
         cursor.execute(query, (id_mantenimiento,))
         mantenimiento = cursor.fetchone()
         return mantenimiento
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
         return None
     finally:
         cursor.close()
         connection.close()
 
-def update_user(id_mantenimiento, id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo):
+def update_mantenimiento(id_mantenimiento, id_equipo, fecha, tipo, detalles, estado, documento):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "UPDATE mantenimiento_equipos SET id_equipo = %s, fecha_mantenimiento = %s, tipo_mantenimiento = %s, id_tecnico = %s, id_supervisor = %s, detalles = %s, estado_equipo = %s WHERE id_mantenimiento = %s"
-    values = (id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo, id_mantenimiento)
+    query = "UPDATE mantenimiento_equipo SET id_equipo = %s, fecha = %s, tipo = %s, detalles = %s, estado = %s, documento = %s WHERE id_mantenimiento = %s"
+    values = (id_equipo, fecha, tipo, detalles, estado, documento, id_mantenimiento)
     try:
         cursor.execute(query, values)
         connection.commit()
         return True
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
         return False
     finally:
         cursor.close()
         connection.close()
 
-def delete_user(id_mantenimiento):
+def delete_mantenimiento(id_mantenimiento):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "DELETE from mantenimiento_equipos WHERE id_mantenimiento = %s"
+    query = "DELETE FROM mantenimiento_equipo WHERE id_mantenimiento = %s"
     try:
         cursor.execute(query, (id_mantenimiento,))
         connection.commit()
         return True
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
         return False
     finally:
         cursor.close()
         connection.close()
 
-def search_users(search_query, search_field, page, per_page):
+def search_mantenimientos_by_field(field, value, page, per_page):
     connection = create_connection()
     if connection is None:
         return [], 0
-    
     cursor = connection.cursor()
     offset = (page - 1) * per_page
-    query = f"SELECT SQL_CALC_FOUND_ROWS * FROM mantenimiento_equipos WHERE {search_field} LIKE %s LIMIT %s OFFSET %s"
-    values = (f'%{search_query}%', per_page, offset)
 
+    query = f"""
+    SELECT SQL_CALC_FOUND_ROWS * 
+    FROM mantenimiento_equipo 
+    WHERE {field} = %s
+    LIMIT %s OFFSET %s
+    """
+    values = (value, per_page, offset)
     try:
         cursor.execute(query, values)
-        mantenimiento = cursor.fetchall()
+        mantenimientos = cursor.fetchall()
         cursor.execute("SELECT FOUND_ROWS()")
-        total_mantenimiento = cursor.fetchone()[0]
-        return mantenimiento, total_mantenimiento
+        total_mantenimientos = cursor.fetchone()[0]
+        return mantenimientos, total_mantenimientos
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"Error '{e}' ocurrió")
         return [], 0
     finally:
         cursor.close()
         connection.close()
 
-
+def search_mantenimientos(search_query, page, per_page):
+    connection = create_connection()
+    if connection is None:
+        return [], 0
+    cursor = connection.cursor()
+    offset = (page - 1) * per_page
+    
+    query = """
+    SELECT SQL_CALC_FOUND_ROWS * 
+    FROM mantenimiento_equipo 
+    WHERE id_equipo LIKE %s 
+       OR tipo LIKE %s 
+       OR detalles LIKE %s 
+       OR estado LIKE %s 
+       OR fecha LIKE %s
+    LIMIT %s OFFSET %s
+    """
+    values = (
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        f'%{search_query}%', 
+        per_page, 
+        offset
+    )
+    try:
+        cursor.execute(query, values)
+        mantenimientos = cursor.fetchall()
+        cursor.execute("SELECT FOUND_ROWS()")
+        total_mantenimientos = cursor.fetchone()[0]
+        return mantenimientos, total_mantenimientos
+    except Error as e:
+        print(f"Error '{e}' ocurrió")
+        return [], 0
+    finally:
+        cursor.close()
+        connection.close()
 
 @app_mantenimiento.route('/')
 def index_mantenimiento():
     return render_template('index_mantenimiento.html')
 
-
-@app_mantenimiento.route('/mantenimiento')
-def mantenimiento():
+@app_mantenimiento.route('/mantenimientos')
+def mantenimientos():
     search_query = request.args.get('search', '')
-    search_field = request.args.get('search_field', 'id_mantenimiento')
     page = request.args.get('page', 1, type=int)
-    per_page = 5
+    per_page = request.args.get('per_page', 5, type=int)
 
     if search_query:
-        mantenimiento, total_mantenimiento = search_users(search_query, search_field, page, per_page)
+        if ':' in search_query:
+            search_field, search_value = search_query.split(':', 1)
+            if search_field in ["id_equipo", "tipo", "detalles", "estado", "fecha"]:
+                mantenimientos, total_mantenimientos = search_mantenimientos_by_field(search_field, search_value, page, per_page)
+            else:
+                mantenimientos, total_mantenimientos = search_mantenimientos(search_value, page, per_page)
+        else:
+            mantenimientos, total_mantenimientos = search_mantenimientos(search_query, page, per_page)
     else:
-        mantenimiento, total_mantenimiento = get_mantenimiento(page, per_page)
+        mantenimientos, total_mantenimientos = get_mantenimientos(page, per_page)
 
-    total_pages = (total_mantenimiento + per_page - 1) // per_page
-    return render_template('mantenimiento.html', mantenimiento=mantenimiento, search_query=search_query, search_field=search_field, page=page, per_page=per_page, total_mantenimiento=total_mantenimiento, total_pages=total_pages)
+    total_pages = (total_mantenimientos + per_page - 1) // per_page
+    return render_template('mantenimientos.html', mantenimientos=mantenimientos, search_query=search_query, page=page, per_page=per_page, total_mantenimientos=total_mantenimientos, total_pages=total_pages)
 
 @app_mantenimiento.route('/submit', methods=['POST'])
 def submit():
     id_equipo = request.form['id_equipo']
-    fecha_mantenimiento = request.form['fecha_mantenimiento']
-    tipo_mantenimiento = request.form['tipo_mantenimiento']
-    id_tecnico = request.form['id_tecnico']
-    id_supervisor = request.form['id_supervisor']
+    fecha = request.form['fecha']
+    tipo = request.form['tipo']
     detalles = request.form['detalles']
-    estado_equipo = request.form['estado_equipo']
+    estado = request.form['estado']
+    documento = request.form['documento']
 
-    if not id_equipo or not fecha_mantenimiento or not tipo_mantenimiento or not id_tecnico or not id_supervisor or not detalles or not estado_equipo:
-        flash('All fields are required!')
+    if not id_equipo or not fecha or not tipo or not detalles or not estado or not documento:
+        flash('Todos los campos son requeridos!')
         return redirect(url_for('index_mantenimiento'))
 
-    inputs = [tipo_mantenimiento, detalles, estado_equipo]
-    for input_value in inputs:
-        if len(input_value) < 3:
-            flash(f"{input_value} must have at least 3 characters")
-            return redirect(url_for('index_mantenimiento'))
-        if re.search(r'[^a-zA-Z]', input_value):
-            flash(f"No special characters allowed in {input_value}")
-            return redirect(url_for('index_mantenimiento'))
-        if re.search(r'([a-zA-Z])\1\1', input_value):
-            flash(f"No repeated letters more than twice in {input_value}")
-            return redirect(url_for('index_mantenimiento'))
-        if re.search(r'([aeiouAEIOU])\1', input_value):
-            flash(f"No repeated vowels in {input_value}")
-            return redirect(url_for('index_mantenimiento'))
-        if re.search(r' {2,}', input_value):
-            flash(f"No more than two spaces in {input_value}")
-            return redirect(url_for('index_mantenimiento'))
-
-    if insert_user(id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo):
-        flash('Product inserted successfully!')
+    if insert_mantenimiento(id_equipo, fecha, tipo, detalles, estado, documento):
+        flash('Mantenimiento insertado exitosamente!')
     else:
-        flash('An error occurred while inserting the product.')
+        flash('Ocurrió un error al insertar el mantenimiento.')
     
     return redirect(url_for('index_mantenimiento'))
 
@@ -200,55 +226,43 @@ def submit():
 def edit_mantenimiento(id_mantenimiento):
     if request.method == 'POST':
         id_equipo = request.form['id_equipo']
-        fecha_mantenimiento = request.form['fecha_mantenimiento']
-        tipo_mantenimiento = request.form['tipo_mantenimiento']
-        id_tecnico = request.form['id_tecnico']
-        id_supervisor = request.form['id_supervisor']
+        fecha = request.form['fecha']
+        tipo = request.form['tipo']
         detalles = request.form['detalles']
-        estado_equipo = request.form['estado_equipo']
+        estado = request.form['estado']
+        documento = request.form['documento']
 
-        if not id_mantenimiento or not id_equipo or not fecha_mantenimiento or not tipo_mantenimiento or not id_tecnico or not id_supervisor or not detalles or not estado_equipo:
-            flash('All fields are required!')
+        if not id_equipo or not fecha or not tipo or not detalles or not estado or not documento:
+            flash('Todos los campos son requeridos!')
             return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
 
-        inputs = [tipo_mantenimiento, detalles, estado_equipo]
-        for input_value in inputs:
-            if len(input_value) < 3:
-                flash(f"{input_value} must have at least 3 characters")
-                return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
-            if re.search(r'[^a-zA-Z0-9 ]', input_value):
-                flash(f"No special characters allowed in {input_value}")
-                return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
-            if re.search(r'([a-zA-Z])\1\1', input_value):
-                flash(f"No repeated letters more than twice in {input_value}")
-                return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
-            if re.search(r'([aeiouAEIOU])\1', input_value):
-                flash(f"No repeated vowels in {input_value}")
-                return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
-            if re.search(r' {2,}', input_value):
-                flash(f"No more than two spaces in {input_value}")
-                return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
-
-        if update_user(id_mantenimiento, id_equipo, fecha_mantenimiento, tipo_mantenimiento, id_tecnico, id_supervisor, detalles, estado_equipo):
-            flash('Product updated successfully!')
+        if update_mantenimiento(id_mantenimiento, id_equipo, fecha, tipo, detalles, estado, documento):
+            flash('Mantenimiento actualizado exitosamente!')
         else:
-            flash('An error occurred while updating the product.')
+            flash('Ocurrió un error al actualizar el mantenimiento.')
         
-        return redirect(url_for('mantenimiento'))
+        return redirect(url_for('mantenimientos'))
 
     mantenimiento = get_mantenimiento_by_id(id_mantenimiento)
     if mantenimiento is None:
-        flash('Product not found!')
-        return redirect(url_for('mantenimiento'))
+        flash('Mantenimiento no encontrado!')
+        return redirect(url_for('mantenimientos'))
     return render_template('edit_mantenimiento.html', mantenimiento=mantenimiento)
 
-@app_mantenimiento.route('/eliminar_mantenimiento/<int:id_mantenimiento>')
+@app_mantenimiento.route('/eliminar_mantenimiento/<int:id_mantenimiento>', methods=['GET', 'POST'])
 def eliminar_mantenimiento(id_mantenimiento):
-    if delete_user(id_mantenimiento):
-        flash('Product deleted successfully!')
-    else:
-        flash('An error occurred while deleting the product.')
-    return redirect(url_for('mantenimiento'))
+    if request.method == 'POST':
+        if delete_mantenimiento(id_mantenimiento):
+            flash('Mantenimiento eliminado exitosamente!')
+        else:
+            flash('Ocurrió un error al eliminar el mantenimiento.')
+        return redirect(url_for('mantenimientos'))
 
-if __name__ == '__main__':
+    mantenimiento = get_mantenimiento_by_id(id_mantenimiento)
+    if mantenimiento is None:
+        flash('Mantenimiento no encontrado!')
+        return redirect(url_for('mantenimientos'))
+    return render_template('eliminar_mantenimiento.html', mantenimiento=mantenimiento)
+
+if __name__ == "__main__":
     app_mantenimiento.run(debug=True,port=5016)

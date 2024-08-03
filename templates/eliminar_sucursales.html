@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar Sucursal</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar Sucursal</h2>
+        
+        <!-- Display messages for status updates -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('eliminar_sucursal', id_sucursal=sucursal[0]) }}" method="post">
+          <label for="ciudad">Sucursal:</label>
+          <input type="text" id="ciudad" name="ciudad" value="{{ sucursal[1] }}" readonly><br><br>
+          
+          <label for="telefono">Teléfono:</label>
+          <input type="text" id="telefono" name="telefono" value="{{ sucursal[2] }}" readonly><br><br>
+
+          <button type="submit" onclick="return confirm('¿Estás seguro de eliminar la sucursal en {{ sucursal[1] }}?');">Eliminar</button>
+        </form>
+        
+        <br>
+        <a href="{{ url_for('sucursales') }}">Volver a la lista de Sucursales</a>
+    </div>
+</body>
+</html>

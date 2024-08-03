@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar Capacitación</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+</head>
+<body>
+    <div class="container">
+        <h2>Ingrese la Capacitación</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit_capacitacion') }}" method="post">
+            <label for="id_empleado">Empleado:</label>
+            <select id="id_empleado" name="id_empleado" required>
+                {% for empleado in empleados %}
+                    <option value="{{ empleado[0] }}">{{ empleado[1] }}</option>
+                {% endfor %}
+            </select><br><br>
+
+            <label for="tema">Tema:</label>
+            <input type="text" id="tema" name="tema" required><br><br>
+
+            <label for="fecha_capacitacion">Fecha y Hora de Capacitación:</label>
+            <input type="datetime-local" id="fecha_capacitacion" name="fecha_capacitacion" required value="{{ today }}">
+
+            <label for="duracion">Duración:</label>
+            <input type="text" id="duracion" name="duracion" required><br><br>
+
+            <label for="resultado">Resultado:</label>
+            <input type="text" id="resultado" name="resultado" required><br><br>
+
+            <input type="submit" value="Guardar">
+        </form> 
+        <br>
+        <a href="{{ url_for('capacitaciones') }}">Lista de capacitaciones</a>
+    </div>
+</body>
+</html>

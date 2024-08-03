@@ -1,104 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Ideas de Mejora</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Ideas</title>
-    <script>
-        function openEditWindow(url) {
-            window.open(url, 'Editar Idea', 'width=500,height=600');
-        }
-    </script>
-    <style>
-        .action-link {
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .action-link i {
-            margin-left: 5px; /* Espacio entre el texto y el icono */
-        }
-
-        .action-link.delete i {
-            color: #e74c3c; /* Color del icono para eliminar */
-        }
-
-        .action-link.delete {
-            color: #e74c3c; /* Color del texto para eliminar */
-        }
-
-        .actions-container {
-            display: flex;
-            align-items: center;
-        }
-    </style>
 </head>
 <body>
-    <h2>Lista de ideas</h2>
-    <form method="get" action="{{ url_for('idea') }}">
-        <select name="field" required>
-            <option value="" disabled {% if not search_field %}selected{% endif %}>Selecciona un campo</option>
-            <option value="id_mejora" {% if search_field == 'id_mejora' %}selected{% endif %}>ID</option>
-            <option value="id_proponente" {% if search_field == 'id_proponente' %}selected{% endif %}>ID Proponente</option>
-            <option value="id_evaluador" {% if search_field == 'id_evaluador' %}selected{% endif %}>ID Evaluador</option>
-            <option value="fecha_propuesta" {% if search_field == 'fecha_propuesta' %}selected{% endif %}>Fecha Propuesta</option>
-            <option value="descripcion_idea" {% if search_field == 'descripcion_idea' %}selected{% endif %}>Descripción Idea</option>
-            <option value="estado" {% if search_field == 'estado' %}selected{% endif %}>Estado</option>
-            <option value="fecha_implementacion" {% if search_field == 'fecha_implementacion' %}selected{% endif %}>Fecha Implementación</option>
-            <option value="descripcion_implementacion" {% if search_field == 'descripcion_implementacion' %}selected{% endif %}>Descripción Implementación</option>
-            <option value="fecha_evaluacion" {% if search_field == 'fecha_evaluacion' %}selected{% endif %}>Fecha Evaluación</option>
-            <option value="impacto" {% if search_field == 'impacto' %}selected{% endif %}>Impacto</option>
-            <option value="indicadores_rendimiento" {% if search_field == 'indicadores_rendimiento' %}selected{% endif %}>Indicadores Rendimiento</option>
+    <h1>Lista de Ideas de Mejora</h1>
+    <form method="GET" action="{{ url_for('ideas') }}">
+        <label for="search_criteria">Buscar por:</label>
+        <select name="search_criteria" id="search_criteria">
+            <option value="documento">Documento</option>
+            <option value="fecha_propuesta">Fecha Propuesta</option>
+            <option value="descripcion_idea">Descripción de la Idea</option>
+            <option value="estado">Estado</option>
         </select>
-        <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
+        <input type="text" name="search_query" placeholder="Buscar...">
         <button type="submit">Buscar</button>
     </form>
-    
-    
-    
-
-    <br>
-    <a class="button-link ing" href="{{ url_for('index_ideas') }}">Ingresar nueva idea</a>
+    <a class="button-link ing" href="{{ url_for('index_ideas') }}">Ingresar Datos de Idea</a>
     <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
-
     <table>
         <thead>
             <tr>
-                <th>ID</th>
-                <th>ID Proponente</th>
-                <th>ID Evaluador</th>
+                <th>Documento</th>
                 <th>Fecha Propuesta</th>
-                <th>Descripción Idea</th>
+                <th>Descripción de la Idea</th>
                 <th>Estado</th>
                 <th>Fecha Implementación</th>
-                <th>Descripción Implementación</th>
-                <th>Fecha Evaluación</th>
-                <th>Impacto</th>
-                <th>Indicadores Rendimiento</th>
+                <th>Descripción de la Implementación</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            {% for idea in idea %}
+            {% for idea in ideas %}
             <tr>
-                <td>{{ idea[0] }}</td>
                 <td>{{ idea[1] }}</td>
                 <td>{{ idea[2] }}</td>
                 <td>{{ idea[3] }}</td>
                 <td>{{ idea[4] }}</td>
                 <td>{{ idea[5] }}</td>
                 <td>{{ idea[6] }}</td>
-                <td>{{ idea[7] }}</td>
-                <td>{{ idea[8] }}</td>
-                <td>{{ idea[9] }}</td>
-                <td>{{ idea[10] }}</td>
-                <td class="actions-container">
-                    <a class="action-link" href="#" onclick="openEditWindow('{{ url_for('edit_idea', id_mejora=idea[0]) }}')">Editar <i class='bx bx-edit'></i></a>
-                    <a class="action-link delete" href="{{ url_for('eliminar_idea', id_mejora=idea[0]) }}">Eliminar <i class='bx bx-trash-alt'></i></a>
+                <td>
+                    <a class="button-link baa" href="{{ url_for('edit_idea', id_mejora=idea[0]) }}">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                    <a class="button-link bee" href="{{ url_for('eliminar_idea', id_mejora=idea[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                 </td>
             </tr>
             {% endfor %}
@@ -106,13 +53,10 @@
     </table>
     <div class="pagination">
         {% if page > 1 %}
-        <a href="{{ url_for('idea', page=page-1, search=search_query) }}">&laquo; Anterior</a>
+        <a href="{{ url_for('ideas', page=page-1, search_criteria=search_criteria, search_query=search_query) }}">Anterior</a>
         {% endif %}
-        {% for p in range(1, total_pages + 1) %}
-        <a href="{{ url_for('idea', page=p, search=search_query) }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
-        {% endfor %}
         {% if page < total_pages %}
-        <a href="{{ url_for('idea', page=page+1, search=search_query) }}">Siguiente &raquo;</a>
+        <a href="{{ url_for('ideas', page=page+1, search_criteria=search_criteria, search_query=search_query) }}">Siguiente</a>
         {% endif %}
     </div>
 </body>

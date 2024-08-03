@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Editar puesto de trabajo</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Editar puesto de trabajos</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('edit_puesto_de_trabajo', id_puesto=puesto_de_trabajo[0]) }}" method="post">
+
+            <label for="id_puesto">ID Puesto:</label>
+            <input type="text" id="id_puesto" name="id_puesto" value="{{ puesto_de_trabajo[0] }}" readonly><br><br>
+
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" value="{{ puesto_de_trabajo[2] }}" required><br><br>
+    
+            <label for="hora_inicio">Hora de Inicio:</label>
+            <input type="time" id="hora_inicio" name="hora_inicio" value="{{ puesto_de_trabajo[3] }}" required><br><br>
+    
+            <label for="hora_fin">Hora de Fin:</label>
+            <input type="time" id="hora_fin" name="hora_fin" value="{{ puesto_de_trabajo[4] }}" required><br><br>
+
+            <label for="puesto_trabajo">Puesto Trabajo:</label>
+            <input type="text" id="puesto_trabajo" name="puesto_trabajo" value="{{ puesto_de_trabajo[5] }}" required><br><br>
+
+            <label for="salario">Salario:</label>
+            <input type="text" id="salario" name="salario" value="{{ puesto_de_trabajo[6] }}" required><br><br>
+
+            <input type="submit" value="Actualizar puesto">
+        </form>
+        
+    <a href="{{ url_for('puesto_de_trabajo') }}">Volver</a>
+</body>
+</html>

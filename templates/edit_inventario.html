@@ -1,72 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Inventario</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Editar inventario</title>
 </head>
 <body>
-    <div class="container">
-        <h2>Editar Inventario</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
+    <h1>Editar Inventario</h1>
+    <form method="POST">
+        <label for="id_producto">Producto:</label>
+        <select name="id_producto" id="id_producto" required>
+            {% for producto in productos %}
+                <option value="{{ producto[0] }}" {% if producto[0] == inventario[1] %}selected{% endif %}>{{ producto[1] }}</option>
             {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        <form id="editForm" action="{{ url_for('edit_inventario', id_inventario=inventario[0]) }}" method="post">
-            <label for="nombre_del_producto">Nombre:</label>
-            <input type="text" id="nombre_del_producto" name="nombre_del_producto" value="{{ inventario[1] }}" required><br><br>
-            <label for="descripcion">Descripción:</label>
-            <input type="text" id="descripcion" name="descripcion" value="{{ inventario[2] }}" required><br><br>
-            <label for="cantidad_en_stock">Cantidad en Stock:</label>
-            <input type="text" id="cantidad_en_stock" name="cantidad_en_stock" value="{{ inventario[3] }}" required><br><br>
-            <label for="stock_minimo">Stock Mínimo:</label>
-            <input type="text" id="stock_minimo" name="stock_minimo" value="{{ inventario[4] }}" required><br><br>
-            <label for="stock_maximo">Stock Máximo:</label>
-            <input type="text" id="stock_maximo" name="stock_maximo" value="{{ inventario[5] }}" required><br><br>
-            <button type="submit">Actualizar</button>
-        </form>
-        
-        <br>
-        <a href="{{ url_for('inventario') }}">Lista de inventario</a>
-    </div>
+        </select>
 
-    <script>
-        // Función para cerrar la ventana actual
-        function closeWindow() {
-            window.close();
-        }
+        <label for="id_categoria">Categoría:</label>
+        <select name="id_categoria" id="id_categoria" required>
+            {% for categoria in categorias %}
+                <option value="{{ categoria[0] }}" {% if categoria[0] == inventario[2] %}selected{% endif %}>{{ categoria[1] }}</option>
+            {% endfor %}
+        </select>
 
-        // Maneja la respuesta después de enviar el formulario
-        document.getElementById('editForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Previene el envío estándar del formulario
+        <label for="cantidad_en_stock">Cantidad en Stock:</label>
+        <input type="number" name="cantidad_en_stock" id="cantidad_en_stock" value="{{ inventario[3] }}" required>
 
-            // Realiza la solicitud AJAX para enviar el formulario
-            var formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Cierra la ventana actual
-                    closeWindow();
-                    // Redirige a inventario.html en la ventana principal
-                    window.opener.location.href = "{{ url_for('inventario') }}";
-                } else {
-                    throw new Error('Error al actualizar el inventario');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Puedes manejar errores aquí si es necesario
-            });
-        });
-    </script>
+        <label for="stock_minimo">Stock Mínimo:</label>
+        <input type="number" name="stock_minimo" id="stock_minimo" value="{{ inventario[4] }}" required>
+
+        <label for="stock_maximo">Stock Máximo:</label>
+        <input type="number" name="stock_maximo" id="stock_maximo" value="{{ inventario[5] }}" required>
+
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <a href="{{ url_for('inventario') }}">Volver al Inventario</a>
 </body>
 </html>

@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
 import re
-from datetime import datetime, timedelta
 
 app_promocion = Flask(__name__)
 app_promocion.secret_key = 'your_secret_key'
@@ -22,59 +21,26 @@ def create_connection():
         print(f"The error '{e}' occurred")
     return connection
 
-def validate_promotion(nombre, descripcion, valor, fecha_inicio, fecha_final):
+def validate_promotion(nombre, valor):
     regexNoTresRepetidas = re.compile(r'(.)\1\1')
-    regexNoSignos = re.compile(r'[^a-zA-Z0-9\s]')
-    regexNoNumerosEnTexto = re.compile(r'\d')
     regexNoLetrasEnNumero = re.compile(r'[a-zA-Z]')
     
-    if not nombre or not descripcion or not valor or not fecha_inicio or not fecha_final:
-        return "Todos los campos son obligatorios."
-
-    if regexNoTresRepetidas.search(nombre) or regexNoTresRepetidas.search(descripcion):
+    if regexNoTresRepetidas.search(nombre):
         return "No se permiten tres letras repetidas consecutivas."
-    
-    if regexNoSignos.search(nombre) or regexNoSignos.search(descripcion) or regexNoSignos.search(valor):
-        return "No se permiten signos."
-    
-    if regexNoNumerosEnTexto.search(nombre) or regexNoNumerosEnTexto.search(descripcion):
-        return "No se permiten números en campos de texto."
-    
+
     if regexNoLetrasEnNumero.search(valor):
         return "No se permiten letras en el campo de valor."
-    
-    if len(nombre) < 3 or len(nombre) > 15:
-        return "El nombre debe tener entre 3 y 15 caracteres."
-    
-    if len(descripcion) < 3 or len(descripcion) > 15:
-        return "La descripción debe tener entre 3 y 15 caracteres."
-    
-    try:
-        today = datetime.now()
-        start_date = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        end_date = datetime.strptime(fecha_final, '%Y-%m-%d')
 
-        if start_date > today + timedelta(days=30):
-            return "La fecha de inicio debe ser máximo 30 días a partir de hoy."
-        
-        if end_date < start_date:
-            return "La fecha final no puede ser antes de la fecha de inicio."
-        
-        if end_date < start_date + timedelta(days=7):
-            return "La fecha final debe ser al menos 7 días después de la fecha de inicio."
-    
-    except ValueError:
-        return "Formato de fecha incorrecto."
-    
     return None
 
-def insert_user(nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion):
+def insert_promocion(nombre, valor):
     connection = create_connection()
     if connection is None:
-        return
+        return False
     cursor = connection.cursor()
-    query = "INSERT INTO promocion (nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-    values = (nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion)
+    query = """INSERT INTO promocion (nombre, valor)
+               VALUES (%s, %s)"""
+    values = (nombre, valor)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -86,23 +52,36 @@ def insert_user(nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, est
         cursor.close()
         connection.close()
 
-
-def get_promocion(page, per_page):
+def get_promocion(limit, offset):
     connection = create_connection()
     if connection is None:
-        return [], 0
+        return []
     cursor = connection.cursor()
-    offset = (page - 1) * per_page
-    query = "SELECT SQL_CALC_FOUND_ROWS * FROM promocion LIMIT %s OFFSET %s"
+    query = "SELECT * FROM promocion LIMIT %s OFFSET %s"
     try:
-        cursor.execute(query, (per_page, offset))
-        promocion = cursor.fetchall()
-        cursor.execute("SELECT FOUND_ROWS()")
-        total_promocion = cursor.fetchone()[0]
-        return promocion, total_promocion
+        cursor.execute(query, (limit, offset))
+        promociones = cursor.fetchall()
+        return promociones
     except Error as e:
         print(f"The error '{e}' occurred")
-        return [], 0
+        return []
+    finally:
+        cursor.close()
+        connection.close()
+
+def get_promocion_count():
+    connection = create_connection()
+    if connection is None:
+        return 0
+    cursor = connection.cursor()
+    query = "SELECT COUNT(*) FROM promocion"
+    try:
+        cursor.execute(query)
+        count = cursor.fetchone()[0]
+        return count
+    except Error as e:
+        print(f"The error '{e}' occurred")
+        return 0
     finally:
         cursor.close()
         connection.close()
@@ -124,13 +103,14 @@ def get_promocion_by_id(id_promocion):
         cursor.close()
         connection.close()
 
-def update_user(id_promocion, nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion):
+def update_promocion(id_promocion, nombre, valor):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "UPDATE promocion SET nombre = %s, descripcion = %s, tipo = %s, valor = %s, fecha_inicio = %s, fecha_final= %s, estado_promocion = %s WHERE id_promocion = %s"
-    values = (nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion, id_promocion)
+    query = """UPDATE promocion SET nombre = %s, valor = %s 
+                WHERE id_promocion = %s"""
+    values = (nombre, valor, id_promocion)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -142,7 +122,7 @@ def update_user(id_promocion, nombre, descripcion, tipo, valor, fecha_inicio, fe
         cursor.close()
         connection.close()
 
-def delete_user(id_promocion):
+def delete_promocion(id_promocion):
     connection = create_connection()
     if connection is None:
         return False
@@ -159,107 +139,85 @@ def delete_user(id_promocion):
         cursor.close()
         connection.close()
 
-def search_users(search_query):
-    connection = create_connection()
-    if connection is None:
-        return []
-    cursor = connection.cursor()
-    query = "SELECT * FROM promocion WHERE nombre LIKE %s OR descripcion LIKE %s OR tipo LIKE %s OR valor LIKE %s OR fecha_inicio LIKE %s OR fecha_final LIKE %s OR estado_promocion LIKE %s"
-    values = (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%')
-    try:
-        cursor.execute(query, values)
-        promocion = cursor.fetchall()
-        return promocion
-    except Error as e:
-        print(f"The error '{e}' occurred")
-        return []
-    finally:
-        cursor.close()
-        connection.close()
-
 @app_promocion.route('/')
 def index_promocion():
     return render_template('index_promocion.html')
 
-@app_promocion.route('/promocion')
+@app_promocion.route('/promocion', methods=['GET'])
 def promocion():
-    search_query = request.args.get('search')
     page = request.args.get('page', 1, type=int)
-    per_page = 5
+    per_page = request.args.get('per_page', 10, type=int)
 
-    if search_query:
-        promocion, total_promocion = search_users(search_query, page, per_page)
-    else:
-        promocion, total_promocion = get_promocion(page, per_page)
+    promociones = get_promocion(per_page, (page-1)*per_page)
+    total_promociones = get_promocion_count()
 
-    total_pages = (total_promocion + per_page - 1) // per_page
-    return render_template('promocion.html', promocion=promocion, search_query=search_query, page=page, per_page=per_page, total_promocion=total_promocion, total_pages=total_pages)
+    total_pages = (total_promociones + per_page - 1) // per_page
 
-@app_promocion.route('/submit', methods=['POST'])
-def submit():
-    nombre = request.form['nombre']
-    descripcion = request.form['descripcion']
-    tipo = request.form['tipo']
-    valor = request.form['valor']
-    fecha_inicio = request.form['fecha_inicio']
-    fecha_final = request.form['fecha_final']
-    estado_promocion = request.form['estado_promocion']
+    return render_template('promocion.html', 
+                           promociones=promociones, 
+                           total_pages=total_pages, 
+                           current_page=page, 
+                           per_page=per_page)
 
-    error = validate_promotion(nombre, descripcion, valor, fecha_inicio, fecha_final)
-    if error:
-        flash(error)
-        return redirect(url_for('index_promocion'))
-
-    if insert_user(nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion):
-        flash('Product inserted successfully!')
-    else:
-        flash('An error occurred while inserting the product.')
-    
-    return redirect(url_for('index_promocion'))
-
-@app_promocion.route('/edit_promocion/<int:id_promocion>', methods=['GET', 'POST'])
-def edit_promocion(id_promocion):
+@app_promocion.route('/promocion/agregar', methods=['GET', 'POST'])
+def agregar_promocion():
     if request.method == 'POST':
         nombre = request.form['nombre']
-        descripcion = request.form['descripcion']
-        tipo = request.form['tipo']
         valor = request.form['valor']
-        fecha_inicio = request.form['fecha_inicio']
-        fecha_final = request.form['fecha_final']
-        estado_promocion = request.form['estado_promocion']
-
-        error = validate_promotion(nombre, descripcion, valor, fecha_inicio, fecha_final)
+        
+        error = validate_promotion(nombre, valor)
         if error:
             flash(error)
-            return redirect(url_for('edit_promocion', id_promocion=id_promocion))
-
-        if update_user(id_promocion, nombre, descripcion, tipo, valor, fecha_inicio, fecha_final, estado_promocion):
-            flash('Product updated successfully!')
-        else:
-            flash('An error occurred while updating the product.')
+            return redirect(url_for('agregar_promocion'))
         
+        if insert_promocion(nombre, valor):
+            flash("Promoción agregada con éxito")
+        else:
+            flash("Error al agregar la promoción")
+
+        return redirect(url_for('promocion'))
+    return render_template('agregar_promocion.html')
+
+@app_promocion.route('/promocion/editar/<int:id_promocion>', methods=['GET', 'POST'])
+def editar_promocion(id_promocion):
+    promocion = get_promocion_by_id(id_promocion)
+    if not promocion:
+        flash("Promoción no encontrada")
+        return redirect(url_for('promocion'))
+    
+    if request.method == 'POST':
+        nombre = request.form.get('nombre', '').strip()  # Elimina espacios en blanco
+        valor = request.form.get('valor', '').strip()
+        
+        error = validate_promotion(nombre, valor)
+        if error:
+            flash(error)
+            return redirect(url_for('editar_promocion', id_promocion=id_promocion))
+
+        if update_promocion(id_promocion, nombre, valor):
+            flash("Promoción actualizada con éxito")
+        else:
+            flash("Error al actualizar la promoción")
+
         return redirect(url_for('promocion'))
 
-    promocion = get_promocion_by_id(id_promocion)
-    if promocion is None:
-        flash('Product not found!')
-        return redirect(url_for('promocion'))
     return render_template('edit_promocion.html', promocion=promocion)
 
-@app_promocion.route('/eliminar_promocion/<int:id_promocion>', methods=['GET', 'POST'])
+@app_promocion.route('/promocion/eliminar/<int:id_promocion>', methods=['GET', 'POST'])
 def eliminar_promocion(id_promocion):
     if request.method == 'POST':
-        if delete_user(id_promocion):
-            flash('Product deleted successfully!')
+        if delete_promocion(id_promocion):
+            flash('¡Promoción eliminada exitosamente!')
+            return redirect(url_for('promocion'))
         else:
-            flash('An error occurred while deleting the product.')
-        return redirect(url_for('promocion'))
+            flash('Ocurrió un error al eliminar la promoción. Por favor, intente nuevamente.')
 
     promocion = get_promocion_by_id(id_promocion)
     if promocion is None:
-        flash('Product not found!')
+        flash('Promoción no encontrada.')
         return redirect(url_for('promocion'))
+
     return render_template('eliminar_promocion.html', promocion=promocion)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_promocion.run(debug=True, port=5014)

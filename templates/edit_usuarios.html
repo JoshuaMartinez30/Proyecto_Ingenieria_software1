@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Editar usuarios</title>
+    <title>Editar Usuarios</title>
 </head>
 <body>
     <div class="container">
@@ -32,44 +32,18 @@
               <option value="1" {% if usuarios[5] == '1' %}selected{% endif %}>1</option>
               <option value="0" {% if usuarios[5] == '0' %}selected{% endif %}>0</option>
             </select><br><br>
-            <input type="submit" value="Update">
+            <label for="usuario_activo">Super usuario:</label>
+            <select id="super_usuario" name="super_usuario" required>
+              <option value="1" {% if usuarios[6] == '1' %}selected{% endif %}>1</option>
+              <option value="0" {% if usuarios[6] == '0' %}selected{% endif %}>0</option>
+            </select><br><br>
+            <input type="submit" value="Actualizar">
         </form>
 
         <br>
-        <a href="#" onclick="closeWindow()">Cerrar ventana</a> <!-- Opcional: enlace para cerrar manualmente -->
+        <a href="{{ url_for('usuarios') }}">Lista de Usuarios</a>
     </div>
 
-    <script>
-        function closeWindow() {
-            // Cierra la ventana actual
-            window.close();
-        }
-
-        // Maneja la respuesta después de enviar el formulario
-        document.getElementById('editForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Previene el envío estándar del formulario
-
-            // Realiza la solicitud AJAX para enviar el formulario
-            var formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Cierra la ventana actual
-                    closeWindow();
-                    // Redirige a usuarios.html en la ventana principal
-                    window.opener.location.href = "{{ url_for('usuarios') }}";
-                } else {
-                    throw new Error('Error al actualizar el usuario');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Puedes manejar errores aquí si es necesario
-            });
-        });
-    </script>
+    
 </body>
 </html>

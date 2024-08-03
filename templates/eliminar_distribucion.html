@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Distribución</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Eliminar Distribución</h1>
+        <p>¿Estás seguro de que quieres eliminar la distribución con ID {{ distribucion[0] }}?</p>
+        <form action="{{ url_for('eliminar_distribucion', id_distribucion=distribucion[0]) }}" method="POST">
+            <button type="submit">Eliminar</button>
+            <a href="{{ url_for('distribuciones') }}">Cancelar</a>
+        </form>
+    </div>
+</body>
+</html>

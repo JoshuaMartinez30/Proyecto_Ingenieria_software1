@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Categoria</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Editar Categoria</h1>
+        <form id="editForm" method="POST" action="{{ url_for('edit_categoria', id_categoria=categoria[0]) }}">
+            <label>Nombre de la Categoria:</label>
+            <input type="text" name="nombre_categoria" value="{{ categoria[1] }}" required>
+            <label>Descripcion:</label>
+            <input type="text" name="Descripcion" value="{{ categoria[2] }}" required>
+            <button type="submit">Guardar Cambios</button>
+        </form>
+        <br>
+        <a href="#" onclick="closeWindow()">Cerrar ventana</a>
+    </div>
+
+    <script>
+        function closeWindow() {
+            window.close();
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    closeWindow();
+                    if (window.opener) {
+                        window.opener.location.reload(); // Recarga la ventana principal
+                    }
+                } else {
+                    throw new Error('Error al actualizar la categoria');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

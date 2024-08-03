@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Categoria</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Eliminar Categoria</h1>
+        <p>¿Estás seguro de que quieres eliminar la categoria con el siguiente ID?</p>
+        <ul>
+            <li><strong>ID:</strong> {{ categoria[0] }}</li>
+            <li><strong>Nombre de la Categoria:</strong> {{ categoria[1] }}</li>
+        </ul>
+        <form method="POST" action="{{ url_for('eliminar_categoria', id_categoria=categoria[0]) }}">
+            <button type="submit">Eliminar</button>
+        </form>
+        <a href="{{ url_for('categorias') }}">Cancelar</a>
+    </div>
+</body>
+</html>

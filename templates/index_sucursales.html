@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Agregar sucursal</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Agregar sucursal</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
+            <label for="ciudad">Sucursal:</label>
+            <input type="text" id="ciudad" name="ciudad" required><br><br>
+            <label for="telefono">Teléfono:</label>
+            <input type="text" id="telefono" name="telefono" required><br><br>
+            <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a href="{{ url_for('sucursales') }}">Lista de sucursales</a>
+    </div>
+</body>
+</html>

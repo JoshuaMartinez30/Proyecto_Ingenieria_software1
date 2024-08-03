@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Detalle de Compra</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Eliminar Detalle de Compra</h1>
+    <p>¿Estás seguro de que deseas eliminar este detalle?</p>
+    <form action="{{ url_for('eliminar_detalle_p', id_detalle=detalle_p[0]) }}" method="post">
+        <button type="submit">Eliminar</button>
+        <a href="{{ url_for('detalles_p') }}">Cancelar</a>
+    </form>
+</body>
+</html>

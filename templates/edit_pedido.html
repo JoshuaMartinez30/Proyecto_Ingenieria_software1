@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Editar Pedido</title>
+</head>
+<body>
+    <h1>Editar Pedido</h1>
+    <form action="{{ url_for('edit_pedido', id_pedido=pedido[0]) }}" method="post">
+        <label for="id_cliente">Cliente:</label>
+        <select id="id_cliente" name="id_cliente" required>
+            {% for cliente in clientes %}
+                <option value="{{ cliente[0] }}" {% if cliente[0] == pedido[1] %}selected{% endif %}>{{ cliente[1] }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="fecha_pedido">Fecha Pedido:</label>
+        <input type="date" id="fecha_pedido" name="fecha_pedido" value="{{ pedido[2] }}" required><br>
+
+        <label for="fecha_entrega">Fecha Entrega:</label>
+        <input type="date" id="fecha_entrega" name="fecha_entrega" value="{{ pedido[3] }}" required><br>
+
+        <label for="id_metodo">Método de Pago:</label>
+        <select id="id_metodo" name="id_metodo" required>
+            {% for metodo in metodos %}
+                <option value="{{ metodo[0] }}" {% if metodo[0] == pedido[4] %}selected{% endif %}>{{ metodo[1] }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="id_estado">Estado:</label>
+        <select id="id_estado" name="id_estado" required>
+            {% for estado in estados %}
+                <option value="{{ estado[0] }}" {% if estado[0] == pedido[5] %}selected{% endif %}>{{ estado[1] }}</option>
+            {% endfor %}
+        </select><br>
+
+        <input type="submit" value="Actualizar">
+    </form>
+    <a href="{{ url_for('pedidos') }}">Volver</a>
+</body>
+</html>

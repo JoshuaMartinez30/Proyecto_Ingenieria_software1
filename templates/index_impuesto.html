@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Ingresar impuesto</title>
+    <script>
+        function toggleOtroField(selectElement, otroFieldId) {
+            const otroField = document.getElementById(otroFieldId);
+            if (selectElement.value === 'Otro') {
+                otroField.style.display = 'block';
+            } else {
+                otroField.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Ingresar impuesto</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
+          <label for="tipo_impuesto">Tipo Impuesto:</label>
+          <select id="tipo_impuesto" name="tipo_impuesto" onchange="toggleOtroField(this, 'otro_tipo_impuesto')" required>
+            <option value="ISV">ISV</option>
+            <option value="ISR">ISR</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <input type="text" id="otro_tipo_impuesto" name="otro_tipo_impuesto" style="display:none;" placeholder="Escribe el tipo de impuesto"><br><br>
+
+          <label for="tasa_impuesto">Tasa Impuesto:</label>
+          <select id="tasa_impuesto" name="tasa_impuesto" onchange="toggleOtroField(this, 'otro_tasa_impuesto')" required>
+            <option value="0.18">18%</option>
+            <option value="0.15">15%</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <input type="text" id="otro_tasa_impuesto" name="otro_tasa_impuesto" style="display:none;" placeholder="Escribe la tasa de impuesto."><br><br>
+
+          <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a href="{{ url_for('impuesto') }}">Lista de impuesto</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles de Compra</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function openEditWindow(url) {
+            window.open(url, 'Editar Detalle', 'width=800,height=600');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center;">Detalles de compra</h1>
+        <br>
+        <div>
+            <a style="padding: 10px 15px; font-size: 16px; width: auto; max-width: 150px;" class="button-link ing" href="{{ url_for('index_detalle') }}">Ingresar Detalle</a>
+        </div>
+        <br>
+        <a href="http://127.0.0.1:5012/pedidos">
+            <button type="button">Ir a Pedido</button>
+        </a>
+        <br>8
+        <br>
+        <a class="button-link ing2"  href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <br>
+        <br>
+        <div>
+            <input style="padding: 10px 15px; font-size: 16px; width: auto; max-width: 200px;" type="text" name="search" value="{{ search_query }}" placeholder="Buscar...">
+            <button style="padding: 10px 15px; font-size: 16px; width: auto; max-width: 100px;" type="submit">Buscar</button>
+        </div>
+        <select style="padding: 5px 7px; font-size: 10px; width: auto; max-width: 50px; display: block; margin: 0 auto;">
+            <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+            <option value="15" {% if per_page == 15 %}selected{% endif %}>15</option>
+        </select>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Detalle</th>
+                    <th>ID Pedido</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Impuesto</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                    <tr>
+                        <td>{{ detalle[0] }}</td>
+                        <td>{{ detalle[1] }}</td>
+                        <td>{{ detalle[2] }}</td>
+                        <td>{{ detalle[3] }}</td>
+                        <td>{{ detalle[4] }}</td>
+                        <td>{{ detalle[5] }}</td>
+                        <td>{{ detalle[6] }}</td>
+                        <td>{{ detalle[7] }}</td>
+                        <td>
+                            <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_detalle', id_detalle=detalle[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                            <a class="button-link bee" href="{{ url_for('eliminar_detalle', id_detalle=detalle[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div>
+            {% if page > 1 %}
+                <a href="{{ url_for('detalles', page=page-1, per_page=per_page) }}">Anterior</a>
+            {% endif %}
+            Página {{ page }} de {{ total_pages }}
+            {% if page < total_pages %}
+                <a href="{{ url_for('detalles', page=page+1, per_page=per_page) }}">Siguiente</a>
+            {% endif %}
+        </div>   
+    </div>
+</body>
+</html>

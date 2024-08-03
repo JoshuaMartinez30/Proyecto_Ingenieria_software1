@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Ingresar puesto de trabajo</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Ingresar puesto de trabajo</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
+         
+    
+            <label for="id_documento">Empleados:</label>
+            <select id="id_documento" name="id_documento" required>
+                {% for documento_empleado in documento_empleado %}
+                <option value="{{ documento_empleado[0] }}">{{ documento_empleado[1] }}</option>
+                {% endfor %}
+            </select>
+    
+            <label for="documento">Documento:</label>
+            <input type="text" id="documento" name="documento" required>
+
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" required><br><br>
+    
+            <label for="hora_inicio">Hora de Inicio:</label>
+            <input type="time" id="hora_inicio" name="hora_inicio" required><br><br>
+    
+            <label for="hora_fin">Hora de Fin:</label>
+            <input type="time" id="hora_fin" name="hora_fin"><br><br>
+
+            <label for="puesto_trabajo">Puesto Trabajo:</label>
+            <input type="text" id="puesto_trabajo" name="puesto_trabajo" required>
+
+            <label for="salario">Salario:</label>
+            <input type="text" id="salario" name="salario" required>
+    
+
+            <input type="submit" value="Guardar">
+        </form>
+        <br>
+        <a href="{{ url_for('puesto_de_trabajo') }}">Lista de puesto de trabajo</a>
+        <a class="ing" href="{{ url_for('index_puesto_de_trabajo') }}">INICIO</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var documento_empleadoSelect = document.getElementById('id_documento');
+            var documentoInput = document.getElementById('documento');
+    
+            documento_empleadoSelect.addEventListener('change', function() {
+                var selecteddocumento_empleadoId = this.value;
+                if (selecteddocumento_empleadoId) {
+                    fetch(`/get_documento/${selecteddocumento_empleadoId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            documentoInput.value = data.documento ? data.documento : '';
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Hubo un error al obtener el documento del empleado.');
+                            documentoInput.value = '';
+                        });
+                } else {
+                    documentoInput.value = '';
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>

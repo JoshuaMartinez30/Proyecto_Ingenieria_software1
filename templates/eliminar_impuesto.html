@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Eliminar impuesto</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Eliminar impuesto</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('eliminar_impuesto', id_impuesto=impuesto[0]) }}" method="post">
+          <label for="id_impuesto">ID impuesto:</label>
+          <input type="text" id="id_impuesto" name="id_impuesto" value="{{ impuesto[0] }}" readonly><br><br>
+          <label for="tipo_impuesto">Tipo Impuesto:</label>
+          <input type="text" id="tipo_impuesto" name="tipo_impuesto" value="{{ impuesto[1] }}" readonly><br><br>
+          <label for="tasa_impuesto">Tasa Impuesto:</label>
+          <input type="text" id="tasa_impuesto" name="tasa_impuesto" value="{{ impuesto[2] }}" readonly><br><br>
+          <br>
+          
+          <button type="submit" onclick="return confirm('¿Está seguro de eliminar este impuesto? ID: {{ impuesto[0] }}');">Eliminar</button>
+      </form>
+      
+        <br>
+        <a href="{{ url_for('impuesto') }}">Lista de impuestos</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Lista de impuesto | Inventario</title>
+</head>
+<body>
+    <div class="container">
+    <h2>Lista de impuesto</h2>
+    <form method="get" action="{{ url_for('impuesto') }}">
+        <input type="text" name="search_query" placeholder="Buscar impuesto..." value="{{ search_query }}">
+        <select name="search_criteria">
+            <option value="id_impuesto" {% if search_criteria == 'id_impuesto' %}selected{% endif %}>ID Impuesto</option>
+            <option value="tipo_impuesto" {% if search_criteria == 'tipo_impuesto' %}selected{% endif %}>Tipo Impuesto</option>
+            <option value="tasa_impuesto" {% if search_criteria == 'tasa_impuesto' %}selected{% endif %}>Tasa Impuesto</option>
+        </select>
+        <button type="submit">Buscar</button>
+    </form>
+    
+
+    <br>
+    <form method="get" action="{{ url_for('impuesto') }}">
+        <label for="per_page">Elementos por página:</label>
+        <select name="per_page" id="per_page" onchange="this.form.submit()">
+            <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+        </select>
+
+        <input type="hidden" name="search_query" value="{{ search_query }}">
+        <input type="hidden" name="search_criteria" value="{{ search_criteria }}">
+    </form>
+
+    <br>
+    <a class="button-link ing" href="{{ url_for('index_impuesto') }}">Agregar nuevo impuesto</a>
+    <a class="button-link ing"  href="{{ url_for('historico_impuestos') }}">Historico de Impuestos</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Tasa</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for impuesto in impuesto %}
+            <tr>
+                <td>{{ impuesto[0] }}</td>
+                <td>{{ impuesto[1] }}</td>
+                <td>{{ impuesto[2] }}</td>
+                <td>
+                    <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_impuesto', id_impuesto=impuesto[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
+                    <a class="button-link bee" href="{{ url_for('eliminar_impuesto', id_impuesto=impuesto[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4">No se encontraron impuesto.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="{{ url_for('impuesto', search_criteria=search_criteria, search_query=search_query, page=page-1, per_page=per_page) }}">« Anterior</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('impuesto', search_criteria=search_criteria, search_query=search_query, page=p, per_page=per_page) }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="{{ url_for('impuesto', search_criteria=search_criteria, search_query=search_query, page=page+1, per_page=per_page) }}">Siguiente »</a>
+        {% endif %}
+    </div>
+
+    <script>
+        function openEditWindow(url) {
+            window.open(url, 'popupWindow', 'width=600,height=400,scrollbars=yes');
+        }
+        </script>
+</div>
+</body>
+</html>
