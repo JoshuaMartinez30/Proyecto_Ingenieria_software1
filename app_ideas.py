@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import re
 import mysql.connector
 from mysql.connector import Error
+from datetime import datetime
 
 app_ideas = Flask(__name__)
 app_ideas.secret_key = 'your_secret_key'
@@ -26,7 +27,8 @@ def insert_idea(documento, fecha_propuesta, descripcion_idea, estado, fecha_impl
     if connection is None:
         return
     cursor = connection.cursor()
-    query = """INSERT INTO ideas_mejora (documento, fecha_propuesta, descripcion_idea, estado, fecha_implementacion, descripcion_implementacion, fecha_evaluacion, impacto, indicadores_rendimiento) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    query = """INSERT INTO ideas_mejora (documento, fecha_propuesta, descripcion_idea, estado, fecha_implementacion, descripcion_implementacion, fecha_evaluacion, impacto, indicadores_rendimiento) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
     values = (documento, fecha_propuesta, descripcion_idea, estado, fecha_implementacion, descripcion_implementacion, fecha_evaluacion, impacto, indicadores_rendimiento)
     try:
         cursor.execute(query, values)
@@ -135,6 +137,30 @@ def search_ideas(search_criteria, search_query, page, per_page):
         cursor.close()
         connection.close()
 
+# Validaciones para campos de texto
+def validar_texto(campo):
+    if not re.match(r'^[a-zA-Z]{3,20}$', campo):
+        return False
+    if re.search(r'(.)\1\1', campo):  # Tres letras consecutivas repetidas
+        return False
+    return True
+
+# Validaciones para campos numéricos
+def validar_numerico(campo):
+    if not re.match(r'^\d{1,20}$', campo):
+        return False
+    return True
+
+# Validaciones para fechas
+def validar_fecha(fecha_str):
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d')
+        if fecha < datetime.now():
+            return False
+        return True
+    except ValueError:
+        return False
+
 @app_ideas.route('/')
 def index_ideas():
     return render_template('index_ideas.html')
@@ -172,6 +198,22 @@ def submit():
         flash('¡Todos los campos obligatorios deben ser completados!')
         return redirect(url_for('index_ideas'))
 
+    if not validar_numerico(documento):
+        flash('El documento debe contener solo números y tener una longitud de entre 1 y 20 caracteres.')
+        return redirect(url_for('index_ideas'))
+
+    if not validar_fecha(fecha_propuesta):
+        flash('La fecha propuesta no puede ser anterior a la fecha actual.')
+        return redirect(url_for('index_ideas'))
+
+    if not validar_texto(descripcion_idea) or not validar_texto(estado) or not validar_texto(descripcion_implementacion):
+        flash('Los campos de texto deben contener entre 3 y 20 letras, sin números, caracteres especiales, ni letras repetidas consecutivas.')
+        return redirect(url_for('index_ideas'))
+
+    if not validar_fecha(fecha_implementacion) or not validar_fecha(fecha_evaluacion):
+        flash('Las fechas de implementación y evaluación no pueden ser anteriores a la fecha actual.')
+        return redirect(url_for('index_ideas'))
+
     if insert_idea(documento, fecha_propuesta, descripcion_idea, estado, fecha_implementacion, descripcion_implementacion, fecha_evaluacion, impacto, indicadores_rendimiento):
         flash('¡Idea ingresada exitosamente!')
     else:
@@ -197,36 +239,43 @@ def edit_idea(id_mejora):
             flash('¡Todos los campos obligatorios deben ser completados!')
             return redirect(url_for('edit_idea', id_mejora=id_mejora))
 
+        if not validar_numerico(documento):
+            flash('El documento debe contener solo números y tener una longitud de entre 1 y 20 caracteres.')
+            return redirect(url_for('edit_idea', id_mejora=id_mejora))
+
+        if not validar_fecha(fecha_propuesta):
+            flash('La fecha propuesta no puede ser anterior a la fecha actual.')
+            return redirect(url_for('edit_idea', id_mejora=id_mejora))
+
+        if not validar_texto(descripcion_idea) or not validar_texto(estado) or not validar_texto(descripcion_implementacion):
+            flash('Los campos de texto deben contener entre 3 y 20 letras, sin números, caracteres especiales, ni letras repetidas consecutivas.')
+            return redirect(url_for('edit_idea', id_mejora=id_mejora))
+
+        if not validar_fecha(fecha_implementacion) or not validar_fecha(fecha_evaluacion):
+            flash('Las fechas de implementación y evaluación no pueden ser anteriores a la fecha actual.')
+            return redirect(url_for('edit_idea', id_mejora=id_mejora))
+
         if update_idea(documento, fecha_propuesta, descripcion_idea, estado, fecha_implementacion, descripcion_implementacion, fecha_evaluacion, impacto, indicadores_rendimiento, id_mejora):
             flash('¡Idea actualizada exitosamente!')
-            return redirect(url_for('ideas'))
         else:
             flash('Ocurrió un error al actualizar la idea.')
-        
-        return redirect(url_for('edit_idea', id_mejora=id_mejora))
+
+        return redirect(url_for('ideas'))
 
     idea = get_idea_by_id(id_mejora)
-    if idea is None:
-        flash('¡Idea no encontrada!')
-        return redirect(url_for('ideas'))
-    
-    return render_template('edit_ideas.html', idea=idea)
-
-@app_ideas.route('/eliminar_idea/<int:id_mejora>', methods=['GET', 'POST'])
-def eliminar_idea(id_mejora):
-    if request.method == 'POST':
-        if delete_idea(id_mejora):
-            flash('¡Idea eliminada exitosamente!')
-        else:
-            flash('Ocurrió un error al eliminar la idea.')
-        return redirect(url_for('ideas'))
-    
-    idea = get_idea_by_id(id_mejora)
-    if idea is None:
-        flash('¡Idea no encontrada!')
+    if idea:
+        return render_template('edit_idea.html', idea=idea)
+    else:
+        flash('Idea no encontrada.')
         return redirect(url_for('ideas'))
 
-    return render_template('eliminar_ideas.html', idea=idea)
+@app_ideas.route('/delete_idea/<int:id_mejora>')
+def delete_idea_route(id_mejora):
+    if delete_idea(id_mejora):
+        flash('¡Idea eliminada exitosamente!')
+    else:
+        flash('Ocurrió un error al eliminar la idea.')
+    return redirect(url_for('ideas'))
 
 if __name__ == '__main__':
-    app_ideas.run(debug=True,port=5010)
+    app_ideas.run(debug=True,port=5015)

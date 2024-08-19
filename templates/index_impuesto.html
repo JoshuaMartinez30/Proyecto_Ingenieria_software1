@@ -12,7 +12,27 @@
                 otroField.style.display = 'block';
             } else {
                 otroField.style.display = 'none';
+                otroField.value = ''; // Limpiar el campo cuando se oculta
             }
+        }
+
+        function validarFormulario() {
+            const otroTipoImpuesto = document.getElementById('otro_tipo_impuesto');
+            const otroTasaImpuesto = document.getElementById('otro_tasa_impuesto');
+            const textoRegex = /^[A-Za-z\s]{3,50}$/;
+            const numerosRegex = /^[0-9]+$/;
+
+            if (otroTipoImpuesto.style.display === 'block' && !textoRegex.test(otroTipoImpuesto.value)) {
+                alert('El tipo de impuesto debe tener entre 3 y 50 caracteres, solo letras y espacios.');
+                return false;
+            }
+
+            if (otroTasaImpuesto.style.display === 'block' && !numerosRegex.test(otroTasaImpuesto.value)) {
+                alert('La tasa de impuesto solo debe contener valores numéricos.');
+                return false;
+            }
+
+            return true;
         }
     </script>
 </head>
@@ -28,7 +48,7 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('submit') }}" method="post">
+        <form action="{{ url_for('submit') }}" method="post" onsubmit="return validarFormulario()">
           <label for="tipo_impuesto">Tipo Impuesto:</label>
           <select id="tipo_impuesto" name="tipo_impuesto" onchange="toggleOtroField(this, 'otro_tipo_impuesto')" required>
             <option value="ISV">ISV</option>
@@ -39,8 +59,8 @@
 
           <label for="tasa_impuesto">Tasa Impuesto:</label>
           <select id="tasa_impuesto" name="tasa_impuesto" onchange="toggleOtroField(this, 'otro_tasa_impuesto')" required>
-            <option value="0.18">18%</option>
-            <option value="0.15">15%</option>
+            <option value="18">18%</option>
+            <option value="15">15%</option>
             <option value="Otro">Otro</option>
           </select>
           <input type="text" id="otro_tasa_impuesto" name="otro_tasa_impuesto" style="display:none;" placeholder="Escribe la tasa de impuesto."><br><br>
@@ -52,3 +72,5 @@
     </div>
 </body>
 </html>
+
+

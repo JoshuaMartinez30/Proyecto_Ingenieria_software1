@@ -54,7 +54,7 @@ def get_producto(page, per_page, search_criteria=None, search_query=None):
         query = f"""
             SELECT p.id_producto, p.nombre, p.id_categoria, p.id_proveedor, 
                    p.original_precio, p.id_impuesto, p.id_promocion, p.id_garantia, 
-                   c.nombre_categoria AS nombre_categoria, pro.Nombre_del_proveedor, i.tasa_impuesto, prom.valor, g.duracion
+                   c.nombre_categoria AS nombre_categoria, pro.Nombre_del_proveedor, i.tasa_impuesto, prom.nombre, g.duracion
             FROM producto p
             JOIN categorias c ON p.id_categoria = c.id_categoria
             JOIN proveedores pro ON p.id_proveedor = pro.id_proveedor
@@ -69,7 +69,7 @@ def get_producto(page, per_page, search_criteria=None, search_query=None):
         query = """
             SELECT p.id_producto, p.nombre, p.id_categoria, p.id_proveedor, 
                    p.original_precio, p.id_impuesto, p.id_promocion, p.id_garantia, 
-                   c.nombre_categoria AS nombre_categoria, pro.Nombre_del_proveedor, i.tasa_impuesto, prom.valor, g.duracion
+                   c.nombre_categoria AS nombre_categoria, pro.Nombre_del_proveedor, i.tasa_impuesto, prom.nombre, g.duracion
             FROM producto p
             JOIN categorias c ON p.id_categoria = c.id_categoria
             JOIN proveedores pro ON p.id_proveedor = pro.id_proveedor
@@ -150,7 +150,7 @@ def get_promocion():
     if connection is None:
         return []
     cursor = connection.cursor()
-    query = "SELECT id_promocion, valor FROM promocion"
+    query = "SELECT id_promocion, nombre FROM promocion"
     try:
         cursor.execute(query)
         documento_empleado = cursor.fetchall()

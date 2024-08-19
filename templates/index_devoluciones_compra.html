@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Devoluciones de Compra</title>
+    <script>
+        let availableQuantity = 0;
+
+        async function loadDetalles() {
+            const idPedido = document.getElementById('id_pedido').value;
+            const response = await fetch(`/detalles/${idPedido}`);
+            const detalles = await response.json();
+            const detallesSelect = document.getElementById('id_detalle');
+            detallesSelect.innerHTML = ''; // Clear current select
+
+            // Clear available quantity whenever new details are loaded
+            availableQuantity = 0;
+
+            if (detalles.length > 0) {
+                detalles.forEach(detalle => {
+                    const option = document.createElement('option');
+                    option.value = detalle.id_detalle;
+                    option.text = `${detalle.nombre_producto} - Cantidad: ${detalle.cantidad}`;
+                    detallesSelect.add(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = "";
+                option.text = "No hay detalles disponibles";
+                detallesSelect.add(option);
+            }
+        }
+
+        async function loadDetalleInfo() {
+            const idDetalle = document.getElementById('id_detalle').value;
+            if (idDetalle) {
+                const response = await fetch(`/detalle-info/${idDetalle}`);
+                const detalleInfo = await response.json();
+                availableQuantity = detalleInfo.cantidad || 0; // Ensure quantity is a number
+            }
+        }
+
+        function validateForm(event) {
+            const motivo = document.querySelector('[name="motivo"]').value;
+            const cantidadDevuelta = parseInt(document.querySelector('[name="cantidad_devuelta"]').value, 10);
+
+            // Validate motivo
+            if (!motivo || motivo.length < 3 || motivo.length > 100) {
+                alert('El motivo debe tener entre 3 y 100 caracteres.');
+                event.preventDefault();
+                return;
+            }
+
+            // Validate cantidad_devuelta
+            if (isNaN(cantidadDevuelta) || cantidadDevuelta < 1 || cantidadDevuelta > availableQuantity) {
+                alert(`La cantidad devuelta debe ser un número positivo mayor o igual a 1 y menor o igual a ${availableQuantity}.`);
+                event.preventDefault();
+                return;
+            }
+        }
+
+        // Set default date to current date
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('[name="fecha_devolucion"]').value = today;
+        }
+
+        window.onload = setDefaultDate;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Devoluciones de Compra</h2>
+
+        <form method="post" action="{{ url_for('submit') }}" onsubmit="validateForm(event)">
+            <label for="id_pedido">ID Pedido:</label>
+            <select id="id_pedido" name="id_pedido" onchange="loadDetalles()" required>
+                <option value="" disabled selected>Seleccionar</option>
+                {% for pedido in pedidos %}
+                    <option value="{{ pedido[0] }}">{{ pedido[0] }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="id_detalle">ID Detalle:</label>
+            <select id="id_detalle" name="id_detalle" onchange="loadDetalleInfo()" required>
+                <option value="" disabled selected>Selecciona un detalle</option>
+            </select>
+
+            <label for="fecha_devolucion">Fecha Devolución:</label>
+            <input type="date" name="fecha_devolucion" required readonly>
+
+            <label for="motivo">Motivo:</label>
+            <input type="text" name="motivo" required>
+
+            <label for="cantidad_devuelta">Cantidad Devuelta:</label>
+            <input type="number" name="cantidad_devuelta" min="1" required>
+
+            <button type="submit">Registrar Devolución</button>
+        </form>
+        <br>
+        <a href="{{ url_for('devoluciones') }}">Lista de Devoluciones</a>
+    </div>
+</body>
+</html>

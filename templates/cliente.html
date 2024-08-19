@@ -23,7 +23,7 @@
             <option value="telefono" {% if search_field == 'telefono' %}selected{% endif %}>Telefono</option>
             <option value="direccion" {% if search_field == 'direccion' %}selected{% endif %}>Direccion</option>
             <option value="fecha_registro" {% if search_field == 'fecha_registro' %}selected{% endif %}>Fecha Registro</option>
-            <option value="documento" {% if search_field == 'documento' %}selected{% endif %}>Fecha Registro</option>
+            <option value="documento" {% if search_field == 'documento' %}selected{% endif %}>Documento</option>
         </select>
         <button type="submit">Buscar</button>
     </form>
@@ -31,7 +31,7 @@
     <br>
     <a class="button-link ing" href="{{ url_for('index_cliente') }}">Ingresar Nuevo cliente</a>
     <a class="button-link ing" href="{{ url_for('historico_clientes') }}">Historico Clientes</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
 
     <table>
         <thead>
@@ -44,7 +44,7 @@
                 <th>Telefono</th>
                 <th>Direccion</th>
                 <th>Fecha Registro</th>
-                <th> Tipo</th>
+                <th>Tipo</th>
                 <th>Documento</th>
                 <th>Acciones</th>
             </tr>
@@ -61,7 +61,15 @@
                 <td>{{ cliente[6] }}</td>
                 <td>{{ cliente[7] }}</td>
                 <td>{{ cliente[8] }}</td>
-                <td>{{ cliente[9] }}</td>                
+                <td>
+                    {% if cliente[8] == 'DNI' %}
+                        {{ cliente[9] | format_dni }}
+                    {% elif cliente[8] == 'RTN' %}
+                        {{ cliente[9] }}
+                    {% elif cliente[8] == 'Pasaporte' %}
+                        {{ cliente[9] }}
+                    {% endif %}
+                </td>                
                 <td>
                     <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_cliente', id_cliente=cliente[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
                     <a class="button-link bee" href="{{ url_for('eliminar_cliente', id_cliente=cliente[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
@@ -70,7 +78,6 @@
             {% endfor %}
         </tbody>
     </table>
- 
 
     <script>
         function openEditWindow(url) {

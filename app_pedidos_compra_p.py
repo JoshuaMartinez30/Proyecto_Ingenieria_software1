@@ -75,13 +75,18 @@ def get_proveedores():
         cursor.close()
         connection.close()
 
-def insert_user(id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado):
+def insert_user(id_proveedor, numero_factura, fecha_pedido, fecha_entrega_estimada, fecha_entrega, id_metodo, id_estado):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "INSERT INTO pedido_de_compra_proveedor (id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado) VALUES ( %s, %s, %s, %s, %s)"
-    values = (id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado)
+    query = """
+        INSERT INTO pedido_de_compra_proveedor 
+        (id_proveedor,numero_factura, fecha_pedido, fecha_entrega_estimada, fecha_entrega, id_metodo, id_estado) 
+        VALUES (%s, %s, %s, %s, %s, %s,%s)
+    """
+    values = (id_proveedor,numero_factura if numero_factura else None, fecha_pedido, fecha_entrega_estimada if fecha_entrega_estimada else None, 
+              fecha_entrega if fecha_entrega else None, id_metodo, id_estado)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -93,6 +98,9 @@ def insert_user(id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado)
         cursor.close()
         connection.close()
 
+
+
+
 def get_pedidos_compra_p(page, per_page):
     connection = create_connection()
     if connection is None:
@@ -100,7 +108,7 @@ def get_pedidos_compra_p(page, per_page):
     cursor = connection.cursor()
     offset = (page - 1) * per_page
     query = """
-        SELECT p.id_pedido, pr.Nombre_del_proveedor, p.fecha_pedido, p.fecha_entrega, mp.nombre, e.nombre_estado
+        SELECT p.id_pedido, pr.Nombre_del_proveedor,p.numero_factura, p.fecha_pedido, p.fecha_entrega_estimada, p.fecha_entrega, mp.nombre, e.nombre_estado
         FROM pedido_de_compra_proveedor p
         JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor
         JOIN metodo_de_pago mp ON p.id_metodo = mp.id_metodo
@@ -120,13 +128,14 @@ def get_pedidos_compra_p(page, per_page):
         cursor.close()
         connection.close()
 
+
 def get_pedidos_compra_p_by_id(id_pedido):
     connection = create_connection()
     if connection is None:
         return None
     cursor = connection.cursor()
     query = """
-        SELECT id_pedido, id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado
+        SELECT id_pedido, id_proveedor, numero_factura, fecha_pedido, fecha_entrega_estimada, fecha_entrega, id_metodo, id_estado
         FROM pedido_de_compra_proveedor
         WHERE id_pedido = %s
     """
@@ -141,13 +150,19 @@ def get_pedidos_compra_p_by_id(id_pedido):
         cursor.close()
         connection.close()
 
-def update_user(id_pedido, id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado):
+
+def update_user(id_pedido, numero_factura, id_proveedor, fecha_pedido, fecha_entrega_estimada, fecha_entrega, id_metodo, id_estado):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = "UPDATE pedido_de_compra_proveedor SET id_proveedor = %s, fecha_pedido = %s, fecha_entrega = %s, id_metodo = %s, id_estado = %s WHERE id_pedido = %s"
-    values = (id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado, id_pedido)
+    query = """
+        UPDATE pedido_de_compra_proveedor 
+        SET id_proveedor = %s, numero_factura = %s,fecha_pedido = %s, fecha_entrega_estimada = %s, fecha_entrega = %s, id_metodo = %s, id_estado = %s 
+        WHERE id_pedido = %s
+    """
+    values = (id_proveedor,numero_factura if numero_factura else None, fecha_pedido, fecha_entrega_estimada if fecha_entrega_estimada else None, 
+              fecha_entrega if fecha_entrega else None, id_metodo, id_estado, id_pedido)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -158,6 +173,8 @@ def update_user(id_pedido, id_proveedor, fecha_pedido, fecha_entrega, id_metodo,
     finally:
         cursor.close()
         connection.close()
+
+
 
 def delete_pedido(id_pedido):
     connection = create_connection()
@@ -183,7 +200,7 @@ def search_users(search_query, search_field, page, per_page):
     cursor = connection.cursor()
     offset = (page - 1) * per_page
     query = f"""
-        SELECT p.id_pedido, pr.Nombre_del_proveedor, p.fecha_pedido, p.fecha_entrega, mp.nombre, e.nombre_estado
+        SELECT p.id_pedido, pr.Nombre_del_proveedor,p.numero_factura, p.fecha_pedido, p.fecha_entrega, mp.nombre, e.nombre_estado
         FROM pedido_de_compra_proveedor p
         JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor
         JOIN metodo_de_pago mp ON p.id_metodo = mp.id_metodo
@@ -244,50 +261,51 @@ def pedidos_compra_pv():
 @app_pedidos_compra_p.route('/submit', methods=['POST'])
 def submit():
     id_proveedor = request.form['id_proveedor']
+    numero_factura=request.form['numero_factura']
     fecha_pedido = request.form['fecha_pedido']
-    fecha_entrega = request.form['fecha_entrega']
+    fecha_entrega_estimada = request.form['fecha_entrega_estimada']
+    fecha_entrega = request.form['fecha_entrega'] or None  # Set to None if empty
     id_metodo = request.form['id_metodo']
     id_estado = request.form['id_estado']
     
-
-    if not id_proveedor or not fecha_pedido or not fecha_entrega or not id_metodo or not id_estado:
-        flash('All fields are required!')
+    if not id_proveedor or not fecha_pedido or not id_metodo or not id_estado:
+        flash('All fields are required except Fecha Entrega and Fecha Entrega Estimada!')
         return redirect(url_for('index_pedidos_compra_p'))
-    
-    
-   
-
-   
-    if insert_user(id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado):
-        flash('pedidos_compra_p inserted successfully!')
+       
+    if insert_user(id_proveedor,numero_factura, fecha_pedido, fecha_entrega_estimada, fecha_entrega, id_metodo, id_estado):
+        flash('Pedido inserted successfully!')
     else:
-        flash('An error occurred while inserting the pedidos_compra_p.')
+        flash('An error occurred while inserting the pedido.')
     
     return redirect(url_for('index_pedidos_compra_p'))
+
 
 @app_pedidos_compra_p.route('/edit_pedidos_compra_p/<int:id_pedido>', methods=['GET', 'POST'])
 def edit_pedidos_compra_p(id_pedido):
     if request.method == 'POST':
         id_proveedor = request.form['id_proveedor']
+        numero_factura = request.form['numero_factura']  # Este campo no será requerido
         fecha_pedido = request.form['fecha_pedido']
-        fecha_entrega = request.form['fecha_entrega']
+        fecha_entrega_estimada = request.form['fecha_entrega_estimada']
+        fecha_entrega = request.form['fecha_entrega'] or None  # Puede ser vacío
         id_metodo = request.form['id_metodo']
-        id_estado = request.form['id_estado']
+        id_estado = request.form['id_estado']  # Asegúrate que sea el mismo nombre que el del input oculto
 
-        if not id_proveedor or not fecha_pedido or not fecha_entrega or not id_metodo or not id_estado:
-            flash('All fields are required!')
+        if not id_proveedor or not fecha_pedido or not id_metodo or not id_estado:
+            flash('Todos los campos son obligatorios excepto "Fecha Entrega" y "Número de Factura".')
             return redirect(url_for('edit_pedidos_compra_p', id_pedido=id_pedido))
 
-        if update_user(id_pedido, id_proveedor, fecha_pedido, fecha_entrega, id_metodo, id_estado):
+        # Asegúrate que esta función sea la correcta
+        if update_user(id_pedido, numero_factura, id_proveedor, fecha_pedido, fecha_entrega_estimada, fecha_entrega, id_metodo, id_estado):
             flash('Pedido actualizado exitosamente', 'success')
             return redirect(url_for('pedidos_compra_pv'))
         else:
-            flash('An error occurred while updating the pedido.', 'danger')
-            return redirect(url_for('edit_pedidos_compra_pv', id_pedido=id_pedido))
+            flash('Ocurrió un error al actualizar el pedido.', 'danger')
+            return redirect(url_for('edit_pedidos_compra_p', id_pedido=id_pedido))
 
     pedido = get_pedidos_compra_p_by_id(id_pedido)
     if not pedido:
-        flash('Pedido not found!', 'danger')
+        flash('Pedido no encontrado!', 'danger')
         return redirect(url_for('pedidos_compra_pv'))
 
     estados = get_estados()
@@ -299,7 +317,7 @@ def edit_pedidos_compra_p(id_pedido):
 
 
 @app_pedidos_compra_p.route('/eliminar_pedidos_compra_p/<int:id_pedido>', methods=['GET', 'POST'])
-def eliminar_pedido(id_pedido):  # Cambié el nombre de la función para que coincida con la funcionalidad
+def eliminar_pedido(id_pedido):  
     if request.method == 'POST':
         if delete_pedido(id_pedido):
             flash('¡Pedido eliminado exitosamente!')
@@ -322,4 +340,4 @@ def eliminar_pedido(id_pedido):  # Cambié el nombre de la función para que coi
     
 if __name__ == '__main__':
 
-    app_pedidos_compra_p.run(debug=True, port=5015)
+    app_pedidos_compra_p.run(debug=True, port=5040)

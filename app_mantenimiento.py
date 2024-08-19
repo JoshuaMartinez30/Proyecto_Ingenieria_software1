@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 import re
 from mysql.connector import Error
+from datetime import datetime
 
 app_mantenimiento = Flask(__name__)
 app_mantenimiento.secret_key = 'your_secret_key'
@@ -177,6 +178,28 @@ def search_mantenimientos(search_query, page, per_page):
         cursor.close()
         connection.close()
 
+def validate_text_field(value, field_name, min_length=3, max_length=20):
+    if not value or len(value) < min_length or len(value) > max_length:
+        return f'{field_name} debe tener entre {min_length} y {max_length} caracteres.'
+    if re.search(r'[0-9]', value):
+        return f'{field_name} no debe contener números.'
+    if re.search(r'[!@#$%^&*(),.?":{}|<>]', value):
+        return f'{field_name} no debe contener caracteres especiales.'
+    return None
+
+def validate_numeric_field(value, field_name):
+    if not value.isdigit():
+        return f'{field_name} debe ser un número entero.'
+    return None
+
+def validate_date_field(value, field_name):
+    try:
+        date_format = '%Y-%m-%d'
+        datetime.strptime(value, date_format)
+    except ValueError:
+        return f'{field_name} debe estar en el formato YYYY-MM-DD.'
+    return None
+
 @app_mantenimiento.route('/')
 def index_mantenimiento():
     return render_template('index_mantenimiento.html')
@@ -211,8 +234,21 @@ def submit():
     estado = request.form['estado']
     documento = request.form['documento']
 
-    if not id_equipo or not fecha or not tipo or not detalles or not estado or not documento:
-        flash('Todos los campos son requeridos!')
+    error_message = None
+    error_message = validate_text_field(id_equipo, 'ID Equipo')
+    if error_message is None:
+        error_message = validate_date_field(fecha, 'Fecha')
+    if error_message is None:
+        error_message = validate_text_field(tipo, 'Tipo')
+    if error_message is None:
+        error_message = validate_text_field(detalles, 'Detalles')
+    if error_message is None:
+        error_message = validate_text_field(estado, 'Estado')
+    if error_message is None:
+        error_message = validate_text_field(documento, 'Documento')
+
+    if error_message:
+        flash(error_message)
         return redirect(url_for('index_mantenimiento'))
 
     if insert_mantenimiento(id_equipo, fecha, tipo, detalles, estado, documento):
@@ -220,9 +256,9 @@ def submit():
     else:
         flash('Ocurrió un error al insertar el mantenimiento.')
     
-    return redirect(url_for('index_mantenimiento'))
+    return redirect(url_for('mantenimientos'))
 
-@app_mantenimiento.route('/edit_mantenimiento/<int:id_mantenimiento>', methods=['GET', 'POST'])
+@app_mantenimiento.route('/edit/<int:id_mantenimiento>', methods=['GET', 'POST'])
 def edit_mantenimiento(id_mantenimiento):
     if request.method == 'POST':
         id_equipo = request.form['id_equipo']
@@ -232,8 +268,21 @@ def edit_mantenimiento(id_mantenimiento):
         estado = request.form['estado']
         documento = request.form['documento']
 
-        if not id_equipo or not fecha or not tipo or not detalles or not estado or not documento:
-            flash('Todos los campos son requeridos!')
+        error_message = None
+        error_message = validate_text_field(id_equipo, 'ID Equipo')
+        if error_message is None:
+            error_message = validate_date_field(fecha, 'Fecha')
+        if error_message is None:
+            error_message = validate_text_field(tipo, 'Tipo')
+        if error_message is None:
+            error_message = validate_text_field(detalles, 'Detalles')
+        if error_message is None:
+            error_message = validate_text_field(estado, 'Estado')
+        if error_message is None:
+            error_message = validate_text_field(documento, 'Documento')
+
+        if error_message:
+            flash(error_message)
             return redirect(url_for('edit_mantenimiento', id_mantenimiento=id_mantenimiento))
 
         if update_mantenimiento(id_mantenimiento, id_equipo, fecha, tipo, detalles, estado, documento):
@@ -245,24 +294,18 @@ def edit_mantenimiento(id_mantenimiento):
 
     mantenimiento = get_mantenimiento_by_id(id_mantenimiento)
     if mantenimiento is None:
-        flash('Mantenimiento no encontrado!')
+        flash('Mantenimiento no encontrado.')
         return redirect(url_for('mantenimientos'))
+    
     return render_template('edit_mantenimiento.html', mantenimiento=mantenimiento)
 
-@app_mantenimiento.route('/eliminar_mantenimiento/<int:id_mantenimiento>', methods=['GET', 'POST'])
-def eliminar_mantenimiento(id_mantenimiento):
-    if request.method == 'POST':
-        if delete_mantenimiento(id_mantenimiento):
-            flash('Mantenimiento eliminado exitosamente!')
-        else:
-            flash('Ocurrió un error al eliminar el mantenimiento.')
-        return redirect(url_for('mantenimientos'))
+@app_mantenimiento.route('/delete/<int:id_mantenimiento>', methods=['POST'])
+def delete_mantenimiento_route(id_mantenimiento):
+    if delete_mantenimiento(id_mantenimiento):
+        flash('Mantenimiento eliminado exitosamente!')
+    else:
+        flash('Ocurrió un error al eliminar el mantenimiento.')
+    return redirect(url_for('mantenimientos'))
 
-    mantenimiento = get_mantenimiento_by_id(id_mantenimiento)
-    if mantenimiento is None:
-        flash('Mantenimiento no encontrado!')
-        return redirect(url_for('mantenimientos'))
-    return render_template('eliminar_mantenimiento.html', mantenimiento=mantenimiento)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app_mantenimiento.run(debug=True,port=5016)

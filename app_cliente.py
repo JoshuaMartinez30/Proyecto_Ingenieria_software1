@@ -145,6 +145,12 @@ def get_historico_clientes(page, per_page):
         cursor.close()
         connection.close()
 
+@app_cliente.template_filter('format_dni')
+def format_dni(dni):
+    if dni and len(dni) == 13:
+        return f"{dni[:4]}-{dni[4:8]}-{dni[8:]}"
+    return dni
+
 @app_cliente.route('/historico_clientes')
 def historico_clientes():
     page = request.args.get('page', 1, type=int)
@@ -181,13 +187,13 @@ def submit():
     documento = request.form['documento']
 
     if not  nombre or not apellido or not fecha_nacimiento or not email or not telefono or not direccion or not fecha_registro or not tipo or not documento:
-        flash('All fields are required!')
+        flash('Todos los campos son necesarios!')
         return redirect(url_for('index_cliente'))
 
     if insert_user( nombre, apellido, fecha_nacimiento, email,telefono,direccion,fecha_registro, tipo, documento):
-        flash('Product inserted successfully!')
+        flash('Cliente insertado!')
     else:
-        flash('An error occurred while inserting the product.')
+        flash('Error insertando el cliente.')
     
     return redirect(url_for('index_cliente'))
 
@@ -210,9 +216,9 @@ def edit_cliente(id_cliente):
             return redirect(url_for('edit_cliente', id_cliente=id_cliente))
 
         if update_user(id_cliente, nombre, apellido, fecha_nacimiento, email,telefono,direccion,fecha_registro, tipo, documento):
-            flash('Product updated successfully!')
+            flash('Cliente actualizado!')
         else:
-            flash('An error occurred while updating the product.')
+            flash('Error actualizando el cliente.')
         
         return redirect(url_for('cliente'))
 

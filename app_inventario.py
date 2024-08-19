@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
+import re
+
 
 app_inventario = Flask(__name__)
 app_inventario.secret_key = 'your_secret_key'  # Cambia 'your_secret_key' por una clave secreta segura
@@ -19,6 +21,22 @@ def create_connection():
     except Error as e:
         print(f"The error '{e}' occurred")
     return connection
+
+def validate_text_field(value, field_name, min_length=3, max_length=20):
+    if not value or len(value) < min_length or len(value) > max_length:
+        return f'{field_name} debe tener entre {min_length} y {max_length} caracteres.'
+    if re.search(r'[0-9]', value):
+        return f'{field_name} no debe contener números.'
+    if re.search(r'[!@#$%^&*()_+={}\[\]:;"\'<>,.?/\\|`~]', value):
+        return f'{field_name} no debe contener caracteres especiales.'
+    if re.search(r'(.)\1{2,}', value):
+        return f'{field_name} no debe contener tres o más letras repetidas consecutivamente.'
+    return None
+
+def validate_numeric_field(value, field_name):
+    if not value.isdigit():
+        return f'{field_name} debe ser un número entero.'
+    return None
 
 def insert_inventario(id_producto, id_categoria, cantidad_en_stock, stock_minimo, stock_maximo):
     connection = create_connection()
@@ -83,7 +101,6 @@ def get_inventario(page, per_page, search_criteria=None, search_query=None):
     finally:
         cursor.close()
         connection.close()
-
 
 def get_categorias():
     connection = create_connection()
@@ -195,8 +212,19 @@ def submit():
     stock_minimo = request.form.get('stock_minimo')
     stock_maximo = request.form.get('stock_maximo')
     
-    if not id_producto or not id_categoria or not cantidad_en_stock or not stock_minimo or not stock_maximo:
-        flash('¡Todos los campos obligatorios deben ser completados!')
+    error_message = None
+    error_message = validate_text_field(id_producto, 'Producto')
+    if error_message is None:
+        error_message = validate_text_field(id_categoria, 'Categoría')
+    if error_message is None:
+        error_message = validate_numeric_field(cantidad_en_stock, 'Cantidad en Stock')
+    if error_message is None:
+        error_message = validate_numeric_field(stock_minimo, 'Stock Mínimo')
+    if error_message is None:
+        error_message = validate_numeric_field(stock_maximo, 'Stock Máximo')
+
+    if error_message:
+        flash(error_message)
         return redirect(url_for('index_inventario'))
 
     if insert_inventario(id_producto, id_categoria, cantidad_en_stock, stock_minimo, stock_maximo):
@@ -205,6 +233,8 @@ def submit():
         flash('Error al agregar el inventario.')
 
     return redirect(url_for('index_inventario'))
+
+from flask import request, render_template
 
 @app_inventario.route('/inventario')
 def inventario():
@@ -215,23 +245,22 @@ def inventario():
 
     inventario, total_count = get_inventario(page, per_page, search_criteria, search_query)
 
-    # Convertir a lista de tuplas con nombres de productos y categorías
+    # Convert to list of tuples with product and category names
     inventario_con_categorias = [
-        (item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7])  
+        (item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7])
         for item in inventario
     ]
 
-    total_pages = (total_count // per_page) + (1 if total_count % per_page > 0 else 0)
+    # Calculate total pages
+    total_pages = (total_count + per_page - 1) // per_page
 
-    return render_template(
-        'inventario.html',
-        inventario=inventario_con_categorias,
-        page=page,
-        total_pages=total_pages,
-        search_query=search_query,
-        search_criteria=search_criteria,
-        per_page=per_page
-    )
+    return render_template('inventario.html', 
+                           inventario=inventario_con_categorias, 
+                           page=page, 
+                           per_page=per_page, 
+                           total_count=total_count, 
+                           total_pages=total_pages, 
+                           search_query=search_query)
 
 @app_inventario.route('/edit_inventario/<int:id_inventario>', methods=['GET', 'POST'])
 def edit_inventario(id_inventario):
@@ -241,15 +270,26 @@ def edit_inventario(id_inventario):
         cantidad_en_stock = request.form.get('cantidad_en_stock')
         stock_minimo = request.form.get('stock_minimo')
         stock_maximo = request.form.get('stock_maximo')
+        
+        error_message = None
+        error_message = validate_text_field(id_producto, 'Producto')
+        if error_message is None:
+            error_message = validate_text_field(id_categoria, 'Categoría')
+        if error_message is None:
+            error_message = validate_numeric_field(cantidad_en_stock, 'Cantidad en Stock')
+        if error_message is None:
+            error_message = validate_numeric_field(stock_minimo, 'Stock Mínimo')
+        if error_message is None:
+            error_message = validate_numeric_field(stock_maximo, 'Stock Máximo')
 
-        if not id_producto or not id_categoria or not cantidad_en_stock or not stock_minimo or not stock_maximo:
-            flash('¡Todos los campos obligatorios deben ser completados!')
-            return redirect(url_for('inventario'))
+        if error_message:
+            flash(error_message)
+            return redirect(url_for('edit_inventario', id_inventario=id_inventario))
 
         if update_inventario(id_inventario, id_producto, id_categoria, cantidad_en_stock, stock_minimo, stock_maximo):
-            flash('Inventario editado exitosamente!')
+            flash('Inventario actualizado exitosamente!')
         else:
-            flash('Error al editar el inventario.')
+            flash('Error al actualizar el inventario.')
 
         return redirect(url_for('inventario'))
 
@@ -260,24 +300,17 @@ def edit_inventario(id_inventario):
 
     categorias = get_categorias()
     productos = get_producto()
+
     return render_template('edit_inventario.html', inventario=inventario, categorias=categorias, productos=productos)
 
-@app_inventario.route('/eliminar_inventario/<int:id_inventario>', methods=['GET', 'POST'])
-def eliminar_inventario(id_inventario):
-    if request.method == 'POST':
-        if delete_inventario(id_inventario):
-            flash('¡Inventario eliminado exitosamente!')
-        else:
-            flash('Ocurrió un error al eliminar el inventario.')
-        return redirect(url_for('inventario'))
+@app_inventario.route('/delete_inventario/<int:id_inventario>', methods=['POST'])
+def delete_inventario_route(id_inventario):
+    if delete_inventario(id_inventario):
+        flash('Inventario eliminado exitosamente!')
+    else:
+        flash('Error al eliminar el inventario.')
 
-    inventario = get_inventario_by_id(id_inventario)
-    if inventario is None:
-        flash('¡Inventario no encontrado!')
-        return redirect(url_for('inventario'))
-
-    return render_template('eliminar_inventario.html', inventario=inventario)
-
+    return redirect(url_for('inventario'))
 
 if __name__ == '__main__':
     app_inventario.run(debug=True,port=5001)

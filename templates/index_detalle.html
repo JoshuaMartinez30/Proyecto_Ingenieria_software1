@@ -16,7 +16,7 @@
         function calculateTotal() {
             var subtotal = parseFloat(document.getElementById('subtotal').value) || 0;
             var impuesto = parseFloat(document.getElementById('id_impuesto').selectedOptions[0].dataset.tasa) || 0;
-            var total = (subtotal * impuesto) + (subtotal);;
+            var total = (subtotal * impuesto) + (subtotal);
             document.getElementById('total').value = total.toFixed(2);
         }
 
@@ -32,51 +32,137 @@
                     .catch(error => console.error('Error:', error));
             }
         }
+
+        async function guardarYRedirigir() {
+            var formulario = document.querySelector('form');
+            if (validarFormulario()) {
+                var formData = new FormData(formulario);
+                try {
+                    await fetch(formulario.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    // Redirigir después de que el formulario se haya enviado
+                    window.location.href = 'http://127.0.0.1:5012/';
+                } catch (error) {
+                    alert('Error al guardar el formulario.');
+                }
+            }
+        }
+
+        function validarFormulario() {
+            var inputs = document.querySelectorAll('input[required]');
+            var valid = true;
+            var errorMessages = [];
+
+            inputs.forEach(function(input) {
+                if (input.value === "") {
+                    errorMessages.push("El campo " + input.name + " es obligatorio.");
+                    valid = false;
+                }
+            });
+
+            if (errorMessages.length > 0) {
+                alert(errorMessages.join("\n"));
+            }
+
+            return valid;
+        }
     </script>
+
+    <!-- Incluir CSS de Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Incluir jQuery (si aún no lo tienes) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Incluir JS de Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 </head>
 <body>
     <div class="container">
-    <h1>Nuevo Detalle de Compra</h1>
-    <form action="{{ url_for('submit_detalle') }}" method="post">
-        <label for="id_pedido">Pedido:</label>
-        <select id="id_pedido" name="id_pedido" required>
-            <option value="">Selecciona un pedido</option>
-            {% for pedido in pedidos %}
-                <option value="{{ pedido[0] }}">{{ pedido[0] }}</option>
-            {% endfor %}
-        </select><br>
+        <h1>Nuevo Detalle de Compra</h1>
+        <form action="{{ url_for('submit_detalle') }}" method="post">
+            <label for="id_pedido">Pedido:</label>
+            <select id="id_pedido" name="id_pedido" required>
+                <option value="">Selecciona un pedido</option>
+                
+                {% for pedido in pedidos %}
+                    <option value="{{ pedido[0] }}" {% if pedido[0] == max_pedido %}selected{% endif %}>
+                        {{ pedido[0] }}
+                    </option>
+                {% endfor %}
+            </select><br>
+                     <!-- Inicializar Select2 -->
+                     <script>
+                        $(document).ready(function() {
+                            $('#id_pedido').select2({
+                                placeholder: "Seleccione un empleado",
+                                allowClear: true
+                            });
+                        });
+                    </script>
+            <label for="id_empleado">Seleccionar Empleado:</label>
+            <select name="id_empleado" id="id_empleado" required>
+                <option value="">Selecciona un empleado</option>
+                {% for empleado in empleados %}
+                    <option value="{{ empleado[0] }}">{{ empleado[1] }} {{ empleado[2] }}</option>
+                {% endfor %}
+            </select><br>
 
-        <label for="id_producto">Producto:</label>
-        <select id="id_producto" name="id_producto" onchange="updatePrecioUnitario()" required>
-            <option value="">Selecciona un producto</option>
-            {% for producto in productos %}
-                <option value="{{ producto[0] }}">{{ producto[1] }}</option>
-            {% endfor %}
-        </select><br>
+                            <!-- Inicializar Select2 -->
+                <script>
+                    $(document).ready(function() {
+                        $('#id_empleado').select2({
+                            placeholder: "Seleccione un empleado",
+                            allowClear: true
+                        });
+                    });
+                </script>
 
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" id="cantidad" name="cantidad" step="any" oninput="calculateSubtotal()" required><br>
+            <label for="id_producto">Producto:</label>
+            <select id="id_producto" name="id_producto" onchange="updatePrecioUnitario()" required>
+                <option value="">Selecciona un producto</option>
+                {% for producto in productos %}
+                    <option value="{{ producto[0] }}">{{ producto[1] }}</option>
+                {% endfor %}
+            </select><br>
+            <!-- Inicializar Select2 -->
+<script>
+    $(document).ready(function() {
+        $('#id_producto').select2({
+            placeholder: "Seleccione un producto",
+            allowClear: true
+        });
+    });
+</script>
 
-        <label for="precio_unitario">Precio Unitario:</label>
-        <input type="number" id="precio_unitario" name="precio_unitario" step="any" readonly required><br>
 
-        <label for="subtotal">Subtotal:</label>
-        <input type="number" id="subtotal" name="subtotal" step="any" readonly><br>
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" step="any" oninput="calculateSubtotal()" required><br>
 
-        <label for="id_impuesto">Impuesto:</label>
-        <select id="id_impuesto" name="id_impuesto" onchange="calculateTotal()" required>
-            <option value="">Selecciona un impuesto</option>
-            {% for impuesto in impuestos %}
-                <option value="{{ impuesto[0] }}" data-tasa="{{ impuesto[1] }}">{{ impuesto[1] }}%</option>
-            {% endfor %}
-        </select><br>
+            <label for="precio_unitario">Precio Unitario:</label>
+            <input type="number" id="precio_unitario" name="precio_unitario" step="any" readonly required><br>
 
-        <label for="total">Total:</label>
-        <input type="number" id="total" name="total" step="any" readonly><br>
+            <label for="subtotal">Subtotal:</label>
+            <input type="number" id="subtotal" name="subtotal" step="any" readonly><br>
 
-        <input style="padding: 10px 15px; font-size: 16px;  width: auto; max-width: 150px;" type="submit" value="Guardar">
-    </form>
-    <a href="{{ url_for('detalles') }}">Ver Detalles de Venta</a>
-</div>
+            <label for="id_impuesto">Impuesto:</label>
+            <select id="id_impuesto" name="id_impuesto" onchange="calculateTotal()" required>
+                <option value="">Selecciona un impuesto</option>
+                {% for impuesto in impuestos %}
+                    <option value="{{ impuesto[0] }}" data-tasa="{{ impuesto[1] }}">{{ impuesto[1] }}%</option>
+                {% endfor %}
+            </select><br>
+
+            <label for="total">Total:</label>
+            <input type="number" id="total" name="total" step="any" readonly><br>
+
+            <input style="padding: 10px 15px; font-size: 16px;  width: auto; max-width: 150px;" type="submit" value="Guardar">
+            <button type="button" onclick="guardarYRedirigir()">Guardar y Redirigir</button>
+        </form>
+        <a href="{{ url_for('detalles') }}">Ver Detalles de Venta</a>
+    </div>
 </body>
 </html>

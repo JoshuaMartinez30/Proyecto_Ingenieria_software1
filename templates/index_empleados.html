@@ -4,44 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Tabla de empleados</title>
+    <title>Agregar Empleado</title>
+    <script>
+        function validateForm() {
+            const nombre = document.getElementById('nombre').value;
+            const apellido = document.getElementById('apellido').value;
+            const fechaNacimiento = document.getElementById('fecha_nacimiento').value;
+            const telefono = document.getElementById('telefono').value;
+            const tipo = document.getElementById('tipo').value;
+            const documento = document.getElementById('documento').value;
+
+            // Validaciones
+            let error = "";
+
+            // Validación de nombre y apellido
+            if (!/^[a-zA-Z\s]{3,20}$/.test(nombre)) {
+                error += "Nombre debe tener entre 3 y 20 letras, sin números ni símbolos.\n";
+            }
+            if (!/^[a-zA-Z\s]{3,20}$/.test(apellido)) {
+                error += "Apellido debe tener entre 3 y 20 letras, sin números ni símbolos.\n";
+            }
+
+            // Validación de fecha de nacimiento (mayor de 18 años)
+            const today = new Date();
+            const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+            if (fechaNacimiento > eighteenYearsAgo) {
+                error += "Debes tener al menos 18 años.\n";
+            }
+
+            // Validación de teléfono (8 dígitos)
+            if (!/^\d{8}$/.test(telefono)) {
+                error += "El teléfono debe tener exactamente 8 dígitos.\n";
+            }
+
+            // Validación de email (simple)
+            const email = document.getElementById('email').value;
+            if (email && !/^[\w-.]+@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(email)) {
+                error += "El email debe tener un formato válido.\n";
+            }
+
+            // Validación del documento según el tipo
+            if (tipo === "DNI") {
+                if (!/^(0[1-9]|1[0-8])\d{11}$/.test(documento)) {
+                    error += "El DNI debe comenzar con un número entre 01 y 18 y tener 13 dígitos en total.\n";
+                }
+            } else if (tipo === "RTN") {
+                if (!/^(0[1-9]|1[0-8])\d{12}$/.test(documento)) {
+                    error += "El RTN debe comenzar con un número entre 01 y 18 y tener 14 dígitos en total.\n";
+                }
+            } else if (tipo === "Pasaporte") {
+                if (!/^E\d{7}$/.test(documento)) {
+                    error += "El Pasaporte debe comenzar con una 'E' seguida de 7 números.\n";
+                }
+            }
+
+            if (error) {
+                alert(error);
+                return false;
+            }
+            return true;
+        }
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha_contratacion').value = today;
+            document.getElementById('fecha_contratacion').setAttribute('readonly', true);
+            document.getElementById('fecha_nacimiento').setAttribute('max', today);
+        }
+
+        window.onload = setDefaultDates;
+    </script>
 </head>
 <body>
     <div class="container">
-        <h2>Tabla de empleados</h2>
-        
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        <form action="{{ url_for('submit') }}" method="post">
+        <h2>Agregar Empleado</h2>
+        <form action="{{ url_for('submit') }}" method="post" onsubmit="return validateForm()">
             <label for="nombre">Nombre:</label>
             <input type="text" id="nombre" name="nombre" required><br><br>
             <label for="apellido">Apellido:</label>
             <input type="text" id="apellido" name="apellido" required><br><br>
             <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
             <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required><br><br>
-            <label for="puesto">Puesto de Trabajo:</label>
-              <select id="puesto_trabajo" name="puesto_trabajo" required>
-                  <option value="Gerente Ventas">Gerente de Ventas</option>
-                  <option value="Asesor de Ventas">Asesor de Ventas</option>
-                  <option value="Tecnico de Servicio">Técnico de Servicio</option>
-                  <option value="Especialista en Marketing">Especialista en Marketing</option>
-                  <option value="Gerente de Inventario">Gerente de Inventario</option>
-              </select>
-              <br><br>
-
+            <label for="puesto_trabajo">Puesto de Trabajo:</label>
+            <select id="puesto_trabajo" name="puesto_trabajo" required>
+                <option value="Gerente Ventas">Gerente de Ventas</option>
+                <option value="Asesor de Ventas">Asesor de Ventas</option>
+                <option value="Tecnico de Servicio">Técnico de Servicio</option>
+                <option value="Especialista en Marketing">Especialista en Marketing</option>
+                <option value="Gerente de Inventario">Gerente de Inventario</option>
+            </select><br><br>
             <label for="fecha_contratacion">Fecha de Contratación:</label>
             <input type="date" id="fecha_contratacion" name="fecha_contratacion" required><br><br>
             <label for="sucursal">Sucursal:</label>
             <select id="sucursal" name="sucursal" required>
                 {% for sucursal in sucursales %}
-                <option value="{{ sucursal[1] }}">{{ sucursal[0] }}</option>
+                <option value="{{ sucursal.id_sucursal }}">{{ sucursal.nombre_sucursal }}</option>
                 {% endfor %}
             </select><br><br>
             <label for="email">Email:</label>
@@ -50,16 +107,16 @@
             <input type="text" id="telefono" name="telefono"><br><br>
             <label for="tipo">Tipo:</label>
             <select id="tipo" name="tipo" required>
-              <option value="DNI ">DNI</option>
-              <option value="Pasaporte">Pasaporte</option>
-              <option value="RTN">RTN</option>
+                <option value="DNI">DNI</option>
+                <option value="RTN">RTN</option>
+                <option value="Pasaporte">Pasaporte</option>
             </select><br><br>
-            <label for="telefono">Documento:</label>
+            <label for="documento">Documento:</label>
             <input type="text" id="documento" name="documento"><br><br>
             <input type="submit" value="Guardar">
         </form>
         <br>
-        <a value="lista de empleados" href="{{ url_for('empleados') }}">Lista de empleados</a>
+        <a href="{{ url_for('empleados') }}">Lista de empleados</a>
     </div>
 </body>
 </html>

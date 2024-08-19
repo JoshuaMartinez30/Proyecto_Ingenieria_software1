@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Ingresar Capacitación</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
 </head>
 <body>
     <div class="container">
@@ -18,7 +17,7 @@
             </ul>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('submit_capacitacion') }}" method="post">
+        <form id="capacitacionForm" action="{{ url_for('submit_capacitacion') }}" method="post">
             <label for="id_empleado">Empleado:</label>
             <select id="id_empleado" name="id_empleado" required>
                 {% for empleado in empleados %}
@@ -39,9 +38,43 @@
             <input type="text" id="resultado" name="resultado" required><br><br>
 
             <input type="submit" value="Guardar">
-        </form> 
+        </form>
         <br>
         <a href="{{ url_for('capacitaciones') }}">Lista de capacitaciones</a>
     </div>
+
+    <script>
+        document.getElementById('capacitacionForm').addEventListener('submit', function(event) {
+            var tema = document.getElementById('tema').value;
+            var duracion = document.getElementById('duracion').value;
+            var resultado = document.getElementById('resultado').value;
+
+            var errors = [];
+
+            // Validación del tema
+            if (tema.length < 3 || tema.length > 20) {
+                errors.push('El tema debe tener entre 3 y 20 caracteres.');
+            }
+            if (!/^[a-zA-Z\s]+$/.test(tema)) {
+                errors.push('El tema solo puede contener letras y espacios.');
+            }
+
+            // Validación de duración
+            if (!/^\d+$/.test(duracion)) {
+                errors.push('La duración debe ser un número entero.');
+            }
+
+            // Validación de resultado
+            if (!/^\d+$/.test(resultado)) {
+                errors.push('El resultado debe ser un número entero.');
+            }
+
+            // Mostrar errores
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                event.preventDefault(); // Evitar el envío del formulario
+            }
+        });
+    </script>
 </body>
 </html>

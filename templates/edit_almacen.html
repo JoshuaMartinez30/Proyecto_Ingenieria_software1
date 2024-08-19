@@ -15,6 +15,14 @@
             <label for="direccion">Dirección:</label>
             <input type="text" id="direccion" name="direccion" value="{{ almacen[2] }}" required>
             
+            <label for="sucursal">Sucursal:</label>
+            <select id="sucursal" name="sucursal" required>
+                <option value="" disabled selected>Selecciona una sucursal</option>
+                {% for sucursal in sucursales %}
+                    <option value="{{ sucursal[0] }}" {% if sucursal[0] == almacen[3] %}selected{% endif %}>{{ sucursal[1] }}</option>
+                {% endfor %}
+            </select>
+            
             <button type="submit">Actualizar Almacén</button>
         </form>
         <a href="{{ url_for('almacenes') }}" onclick="window.close()">Volver a la lista</a>

@@ -42,6 +42,63 @@
             background-color: #45a049;
         }
     </style>
+    <script>
+        function validarFacturaInput() {
+            var input = document.getElementById('numero_factura');
+            var rawValue = input.value.replace(/[^0-9]/g, ''); // Quita caracteres no numéricos
+
+            // Mantener el prefijo FAC- y limitar a 14 caracteres
+            var prefix = 'FAC-';
+            rawValue = rawValue.substring(0, 14);
+
+            // Formato para xx-xx-xxxxxx
+            if (rawValue.length >= 8) {
+                var part1 = rawValue.substring(0, 2); // Primeros dos dígitos
+                var part2 = rawValue.substring(2, 4); // Siguientes dos dígitos
+                var part3 = rawValue.substring(4); // Resto
+                input.value = `${prefix}${part1}-${part2}-${part3}`;
+            } else if (rawValue.length >= 4) {
+                var part1 = rawValue.substring(0, 2);
+                var part2 = rawValue.substring(2);
+                input.value = `${prefix}${part1}-${part2}`;
+            } else {
+                input.value = prefix + rawValue; // Mantener el prefijo FAC- si es menor a 4
+            }
+        }
+
+        function validarFormulario() {
+            var numeroFactura = document.getElementById('numero_factura').value;
+            var facturaRegex = /^FAC-\d{2}-\d{2}-\d{6}$|^FAC-\d{14}$/; // Formato FAC-xx-xx-xxxxxx o FAC-xxxxxxxxxxxxxx
+            if (numeroFactura && !facturaRegex.test(numeroFactura)) {
+                alert("El número de factura debe seguir el formato: FAC-xx-xx-xxxxxx o FAC-xxxxxxxxxxxxxx");
+                return false;
+            }
+
+            var fechaPedido = new Date(document.getElementById('fecha_pedido').value);
+            var fechaEntrega = document.getElementById('fecha_entrega').value ? new Date(document.getElementById('fecha_entrega').value) : null;
+            var fechaEntregaEstimada = new Date(document.getElementById('fecha_entrega_estimada').value);
+
+            if (fechaEntrega && fechaEntrega < fechaPedido) {
+                alert("La fecha de entrega no puede ser antes que la fecha del pedido");
+                return false;
+            }
+            if (fechaEntrega && fechaEntrega < new Date()) {
+                alert("La fecha de entrega no puede estar en el pasado");
+                return false;
+            }
+            if (fechaEntregaEstimada < fechaPedido) {
+                alert("La fecha de entrega estimada no puede ser antes que la fecha del pedido");
+                return false;
+            }
+            if (fechaEntregaEstimada < new Date()) {
+                alert("La fecha de entrega estimada no puede estar en el pasado");
+                return false;
+            }
+
+            return true;
+        }
+
+    </script>
 </head>
 <body>
     <div class="container">
@@ -55,31 +112,43 @@
                 </ul>
             {% endif %}
         {% endwith %}
-        <form action="{{ url_for('edit_pedidos_compra_p', id_pedido=pedido[0]) }}" method="post">
+        <form action="{{ url_for('edit_pedidos_compra_p', id_pedido=pedido[0]) }}" method="post" onsubmit="return validarFormulario()">
             <label for="id_proveedor">Proveedor:</label>
             <select id="id_proveedor" name="id_proveedor" required>
                 {% for proveedor in proveedores %}
                 <option value="{{ proveedor[0] }}" {% if proveedor[0] == pedido[1] %}selected{% endif %}>{{ proveedor[1] }}</option>
                 {% endfor %}
             </select><br><br>
+        
+            <label for="numero_factura">Numero de Factura:</label>
+            <input type="text" id="numero_factura" name="numero_factura" value="{{ pedido[2] }}" oninput="validarFacturaInput()"><br><br>
+        
             <label for="fecha_pedido">Fecha Pedido:</label>
-            <input type="date" id="fecha_pedido" name="fecha_pedido" value="{{ pedido[2] }}" required><br><br>
+            <input type="date" id="fecha_pedido" name="fecha_pedido" value="{{ pedido[3] }}" required><br><br>
+        
+            <label for="fecha_entrega_estimada">Fecha Entrega Estimada:</label>
+            <input type="date" id="fecha_entrega_estimada" name="fecha_entrega_estimada" value="{{ pedido[4] }}" required><br><br>
+        
             <label for="fecha_entrega">Fecha Entrega:</label>
-            <input type="date" id="fecha_entrega" name="fecha_entrega" value="{{ pedido[3] }}" required><br><br>
+            <input type="date" id="fecha_entrega" name="fecha_entrega" value="{{ pedido[5] }}"><br><br>
+        
             <label for="id_metodo">Método de Pago:</label>
             <select id="id_metodo" name="id_metodo" required>
                 {% for metodo in metodos %}
-                <option value="{{ metodo[0] }}" {% if metodo[0] == pedido[4] %}selected{% endif %}>{{ metodo[1] }}</option>
+                <option value="{{ metodo[0] }}" {% if metodo[0] == pedido[6] %}selected{% endif %}>{{ metodo[1] }}</option>
                 {% endfor %}
             </select><br><br>
+        
             <label for="id_estado">Estado:</label>
             <select id="id_estado" name="id_estado" required>
                 {% for estado in estados %}
-                <option value="{{ estado[0] }}" {% if estado[0] == pedido[5] %}selected{% endif %}>{{ estado[1] }}</option>
+                <option value="{{ estado[0] }}" {% if estado[0] == pedido[7] %}selected{% endif %}>{{ estado[1] }}</option>
                 {% endfor %}
             </select><br><br>
+        
             <input type="submit" value="Actualizar">
         </form>
+        
     </div>
 </body>
 </html>

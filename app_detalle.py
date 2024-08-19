@@ -21,16 +21,16 @@ def create_connection():
         print(f"Error '{e}' ocurrió")
     return connection
 
-def insert_detalle(id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total):
+def insert_detalle(id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total, id_empleado):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
     query = """
-    INSERT INTO detalle_de_compra_cliente (id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO detalle_de_compra_cliente (id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total, id_empleado)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
-    values = (id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total)
+    values = (id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total, id_empleado)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -49,11 +49,13 @@ def get_detalles(page, per_page):
     cursor = connection.cursor()
     offset = (page - 1) * per_page
     query = """
-    SELECT SQL_CALC_FOUND_ROWS d.id_detalle, p.id_pedido, pr.nombre AS producto, d.cantidad, d.precio_unitario, d.subtotal, i.tasa_impuesto, d.total
+    SELECT SQL_CALC_FOUND_ROWS d.id_detalle, p.id_pedido, pr.nombre AS producto, d.cantidad, d.precio_unitario, d.subtotal, i.tasa_impuesto, d.total, 
+           CONCAT(e.nombre, ' ', e.apellido) AS empleado
     FROM detalle_de_compra_cliente d
     JOIN pedido_de_compra_cliente p ON d.id_pedido = p.id_pedido
     JOIN producto pr ON d.id_producto = pr.id_producto
     JOIN impuesto i ON d.id_impuesto = i.id_impuesto
+    JOIN empleados e ON d.id_empleado = e.id_empleado
     LIMIT %s OFFSET %s
     """
     try:
@@ -69,12 +71,22 @@ def get_detalles(page, per_page):
         cursor.close()
         connection.close()
 
+
 def get_detalle_by_id(id_detalle):
     connection = create_connection()
     if connection is None:
         return None
     cursor = connection.cursor()
-    query = "SELECT * FROM detalle_de_compra_cliente WHERE id_detalle = %s"
+    query = """
+    SELECT d.id_detalle, p.id_pedido, pr.nombre AS producto, d.cantidad, d.precio_unitario, d.subtotal, i.tasa_impuesto, d.total, 
+           CONCAT(e.nombre, ' ', e.apellido) AS empleado
+    FROM detalle_de_compra_cliente d
+    JOIN pedido_de_compra_cliente p ON d.id_pedido = p.id_pedido
+    JOIN producto pr ON d.id_producto = pr.id_producto
+    JOIN impuesto i ON d.id_impuesto = i.id_impuesto
+    JOIN empleados e ON d.id_empleado = e.id_empleado
+    WHERE d.id_detalle = %s
+    """
     try:
         cursor.execute(query, (id_detalle,))
         detalle = cursor.fetchone()
@@ -86,17 +98,18 @@ def get_detalle_by_id(id_detalle):
         cursor.close()
         connection.close()
 
-def update_detalle(id_detalle, id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total):
+
+def update_detalle(id_detalle, id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total, id_empleado):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
     query = """
     UPDATE detalle_de_compra_cliente
-    SET id_pedido = %s, id_producto = %s, cantidad = %s, precio_unitario = %s, subtotal = %s, id_impuesto = %s, total = %s
+    SET id_pedido = %s, id_producto = %s, cantidad = %s, precio_unitario = %s, subtotal = %s, id_impuesto = %s, total = %s, id_empleado = %s
     WHERE id_detalle = %s
     """
-    values = (id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total, id_detalle)
+    values = (id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total, id_empleado, id_detalle)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -129,7 +142,7 @@ def delete_detalle(id_detalle):
 def index_detalle():
     connection = create_connection()
     if connection is None:
-        return render_template('index_detalle.html', pedidos=[], productos=[], impuestos=[])
+        return render_template('index_detalle.html', pedidos=[], productos=[], impuestos=[], empleados=[], max_pedido=None)
     cursor = connection.cursor()
 
     cursor.execute("SELECT id_pedido FROM pedido_de_compra_cliente")
@@ -140,11 +153,16 @@ def index_detalle():
 
     cursor.execute("SELECT id_impuesto, tasa_impuesto FROM impuesto")
     impuestos = cursor.fetchall()
+
+    cursor.execute("SELECT id_empleado, nombre, apellido FROM empleados")
+    empleados = cursor.fetchall()
+    cursor.execute("SELECT MAX(id_pedido) FROM pedido_de_compra_cliente")
+    max_pedido = cursor.fetchone()[0]
     
     cursor.close()
     connection.close()
 
-    return render_template('index_detalle.html', pedidos=pedidos, productos=productos, impuestos=impuestos)
+    return render_template('index_detalle.html', pedidos=pedidos, productos=productos, impuestos=impuestos, empleados=empleados, max_pedido=max_pedido)
 
 @app_detalle.route('/detalles')
 def detalles():
@@ -157,17 +175,17 @@ def detalles():
 @app_detalle.route('/submit_detalle', methods=['POST'])
 def submit_detalle():
     id_pedido = request.form['id_pedido']
-    id_producto = request.form['id_producto']
-    cantidad = float(request.form['cantidad'])
-    precio_unitario = float(request.form['precio_unitario'])
-    subtotal = cantidad * precio_unitario
+    productos = request.form.getlist('id_producto')  # Obtén la lista de productos seleccionados
+    cantidades = request.form.getlist('cantidad')    # Obtén la lista de cantidades
+    precios_unitarios = request.form.getlist('precio_unitario')
     id_impuesto = request.form['id_impuesto']
+    id_empleado = request.form['id_empleado']
 
     # Obtener la tasa de impuesto
     connection = create_connection()
     cursor = connection.cursor()
-    query = "SELECT tasa_impuesto FROM impuesto WHERE id_impuesto = %s"
-    cursor.execute(query, (id_impuesto,))
+    query_impuesto = "SELECT tasa_impuesto FROM impuesto WHERE id_impuesto = %s"
+    cursor.execute(query_impuesto, (id_impuesto,))
     result = cursor.fetchone()
     cursor.close()
     connection.close()
@@ -176,19 +194,25 @@ def submit_detalle():
         flash('Impuesto no encontrado!')
         return redirect(url_for('index_detalle'))
 
-    tasa_impuesto = result[0]
-    tasa_impuesto = float(tasa_impuesto) if isinstance(tasa_impuesto, Decimal) else float(tasa_impuesto)
-    total = total = (subtotal * tasa_impuesto) + subtotal
+    tasa_impuesto = float(result[0])
+    detalles_insertados = True
 
-    if not id_pedido or not id_producto or not cantidad or not precio_unitario or not subtotal or not id_impuesto or not total:
-        flash('Todos los campos son requeridos!')
-        return redirect(url_for('index_detalle'))
+    for i in range(len(productos)):
+        id_producto = productos[i]
+        cantidad = float(cantidades[i])
+        precio_unitario = float(precios_unitarios[i])
+        subtotal = cantidad * precio_unitario
+        total = subtotal * (1 + tasa_impuesto / 100)
 
-    if insert_detalle(id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total):
-        flash('Detalle insertado exitosamente!')
+        if not insert_detalle(id_pedido, id_producto, cantidad, precio_unitario, subtotal, id_impuesto, total,id_empleado):
+            detalles_insertados = False
+            break
+
+    if detalles_insertados:
+        flash('Detalles insertados exitosamente!')
     else:
-        flash('Ocurrió un error al insertar el detalle.')
-    
+        flash('Ocurrió un error al insertar algunos detalles.')
+
     return redirect(url_for('index_detalle'))
 
 @app_detalle.route('/edit_detalle/<int:id_detalle>', methods=['GET', 'POST'])
@@ -201,8 +225,9 @@ def edit_detalle(id_detalle):
         subtotal = float(request.form['subtotal'])
         id_impuesto = request.form['id_impuesto']
         total = float(request.form['total'])
+        id_empleado = request.form['id_empleado']
 
-        if not id_pedido or not id_producto or not cantidad or not precio_unitario or not subtotal or not id_impuesto or not total:
+        if not id_pedido or not id_producto or not cantidad or not precio_unitario or not subtotal or not id_impuesto or not total or not id_empleado:
             flash('Todos los campos son requeridos!')
             return redirect(url_for('edit_detalle', id_detalle=id_detalle))
 
@@ -273,4 +298,4 @@ def get_precio(id_producto):
         connection.close()
 
 if __name__ == '__main__':
-    app_detalle.run(debug=True,port=5023)
+    app_detalle.run(debug=True, port=5023)

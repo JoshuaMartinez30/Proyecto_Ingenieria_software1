@@ -37,7 +37,7 @@
     <br>
     <a class="button-link ing" href="{{ url_for('index_impuesto') }}">Agregar nuevo impuesto</a>
     <a class="button-link ing"  href="{{ url_for('historico_impuestos') }}">Historico de Impuestos</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
     <table>
         <thead>
             <tr>
@@ -52,7 +52,7 @@
             <tr>
                 <td>{{ impuesto[0] }}</td>
                 <td>{{ impuesto[1] }}</td>
-                <td>{{ impuesto[2] }}</td>
+                <td>{{ impuesto[2] }}%</td>
                 <td>
                     <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_impuesto', id_impuesto=impuesto[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
                     <a class="button-link bee" href="{{ url_for('eliminar_impuesto', id_impuesto=impuesto[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>

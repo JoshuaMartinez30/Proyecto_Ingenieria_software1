@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <title>Inventario</title>
+    <title>Almacen Central</title>
 </head>
 <body>
     <div class="container">
-        <h2>Inventario</h2>
+        <h2>Almacen Central</h2>
 
         <!-- Formulario de búsqueda -->
         <form method="get" action="{{ url_for('inventario') }}">
@@ -43,7 +43,7 @@
         </form>
 
         <br>
-        <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
 
         <!-- Tabla de resultados -->
         <table>
@@ -69,7 +69,7 @@
                     <td>{{ inventario[5] }}</td>
                     <td>
                         <a class="button-link baa" onclick="openEditWindow('{{ url_for('edit_inventario', id_inventario=inventario[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
-                        <a class="button-link bee" href="{{ url_for('eliminar_inventario', id_inventario=inventario[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                        <a class="button-link bee" href="{{ url_for('delete_inventario_route', id_inventario=inventario[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                     </td>
                 </tr>
                 {% endfor %}

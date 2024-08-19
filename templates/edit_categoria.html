@@ -10,9 +10,11 @@
         <h1>Editar Categoria</h1>
         <form id="editForm" method="POST" action="{{ url_for('edit_categoria', id_categoria=categoria[0]) }}">
             <label>Nombre de la Categoria:</label>
-            <input type="text" name="nombre_categoria" value="{{ categoria[1] }}" required>
+            <input type="text" name="nombre_categoria" id="nombre_categoria" value="{{ categoria[1] }}" required><br><br>
+            
             <label>Descripcion:</label>
-            <input type="text" name="Descripcion" value="{{ categoria[2] }}" required>
+            <input type="text" name="Descripcion" id="Descripcion" value="{{ categoria[2] }}" required><br><br>
+            
             <button type="submit">Guardar Cambios</button>
         </form>
         <br>
@@ -25,26 +27,60 @@
         }
 
         document.getElementById('editForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+            let errors = [];
 
-            var formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    closeWindow();
-                    if (window.opener) {
-                        window.opener.location.reload(); // Recarga la ventana principal
+            // Validación del nombre de la categoría
+            const nombreCategoria = document.getElementById('nombre_categoria').value;
+            
+            if (/\d/.test(nombreCategoria)) {
+                errors.push('El nombre no puede contener números.');
+            } 
+            if (/[^a-zA-Z\s]/.test(nombreCategoria)) {
+                errors.push('El nombre no puede contener caracteres especiales.');
+            }
+            if (nombreCategoria.length < 3 || nombreCategoria.length > 20) {
+                errors.push('El nombre debe tener entre 3 y 20 caracteres.');
+            }
+
+            // Validación de la descripción
+            const descripcion = document.getElementById('Descripcion').value;
+            
+            if (/\d/.test(descripcion)) {
+                errors.push('La descripción no puede contener números.');
+            }
+            if (/[^a-zA-Z\s]/.test(descripcion)) {
+                errors.push('La descripción no puede contener caracteres especiales.');
+            }
+            if (descripcion.length < 3 || descripcion.length > 50) {
+                errors.push('La descripción debe tener entre 3 y 50 caracteres.');
+            }
+
+            // Si hay errores, prevenir el envío del formulario y mostrar los mensajes
+            if (errors.length > 0) {
+                event.preventDefault();
+                alert(errors.join('\n'));
+            } else {
+                event.preventDefault();
+
+                var formData = new FormData(this);
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        closeWindow();
+                        if (window.opener) {
+                            window.opener.location.reload(); // Recarga la ventana principal
+                        }
+                    } else {
+                        throw new Error('Error al actualizar la categoria');
                     }
-                } else {
-                    throw new Error('Error al actualizar la categoria');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
         });
     </script>
 </body>

@@ -55,8 +55,10 @@
             <tr>
                 <th>ID Pedido</th>
                 <th>Proveedor</th>
+                <th>Numero De Factura</th>
                 <th>Fecha Pedido</th>
-                <th>Fecha Entrega</th>
+                <th>Fecha Entrega Estimada</th> <!-- Added -->
+                <th>Fecha de Recepcion</th>
                 <th>Método</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -68,14 +70,15 @@
                 <td>{{ pedido[0] }}</td>
                 <td>{{ pedido[1] }}</td>
                 <td>{{ pedido[2] }}</td>
-                <td>{{ pedido[3] }}</td>
+                <td>{{ pedido[3] }}</td> <!-- Added -->
                 <td>{{ pedido[4] }}</td>
                 <td>{{ pedido[5] }}</td>
+                <td>{{ pedido[6] }}</td>
+                <td>{{ pedido[7] }}</td>
                 <td class="actions-container">
                     <a class="action-link" href="#" onclick="openEditWindow('{{ url_for('edit_pedidos_compra_p', id_pedido=pedido[0]) }}')">Editar <i class='bx bx-edit'></i></a>
-                    <a class="action-link delete" href="#" onclick="openEditWindow('{{ url_for('eliminar_pedido', id_pedido=pedido[0]) }}')">Eliminar <i class='bx bx-trash-alt'></i></a> <!-- Aquí asegúrate de que el nombre del endpoint sea 'eliminar_pedido' -->
+                    <a class="action-link delete" href="#" onclick="openEditWindow('{{ url_for('eliminar_pedido', id_pedido=pedido[0]) }}')">Eliminar <i class='bx bx-trash-alt'></i></a>
                 </td>
-                
             </tr>
             {% endfor %}
         </tbody>

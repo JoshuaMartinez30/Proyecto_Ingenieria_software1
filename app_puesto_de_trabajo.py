@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
+import re
+from datetime import datetime
 
 app_puesto_de_trabajo = Flask(__name__)
 app_puesto_de_trabajo.secret_key = 'your_secret_key'  # Cambia 'your_secret_key' por una clave secreta segura
@@ -19,6 +21,32 @@ def create_connection():
     except Error as e:
         print(f"The error '{e}' occurred")
     return connection
+
+def validate_puesto_trabajo(puesto_trabajo):
+    if not re.match(r'^[a-zA-Z\s]{3,20}$', puesto_trabajo):
+        return "El puesto de trabajo debe tener entre 3 y 20 caracteres y no debe contener números ni símbolos."
+    return None
+
+def validate_salary(salario):
+    try:
+        float(salario)  # Verifica que el salario sea un número decimal
+        return None
+    except ValueError:
+        return "El salario debe ser un número decimal válido."
+
+def validate_fecha(fecha):
+    try:
+        datetime.strptime(fecha, '%Y-%m-%d')  # Asegúrate de que la fecha tenga el formato correcto
+        return None
+    except ValueError:
+        return "La fecha debe estar en el formato YYYY-MM-DD."
+
+def validate_time(hora):
+    try:
+        datetime.strptime(hora, '%H:%M')  # Asegúrate de que la hora tenga el formato correcto
+        return None
+    except ValueError:
+        return "La hora debe estar en el formato HH:MM."
 
 def insert_puesto_de_trabajo(id_documento, fecha, hora_inicio, hora_fin, puesto_trabajo, salario):
     connection = create_connection()
@@ -41,7 +69,6 @@ def insert_puesto_de_trabajo(id_documento, fecha, hora_inicio, hora_fin, puesto_
     finally:
         cursor.close()
         connection.close()
-
 
 def get_puesto_de_trabajo(page, per_page, search_criteria=None, search_query=None):
     connection = create_connection()
@@ -130,7 +157,6 @@ def update_puesto_de_trabajo(id_puesto, fecha, hora_inicio, hora_fin, puesto_tra
         cursor.close()
         connection.close()
 
-
 def delete_puesto_de_trabajo(id_puesto):
     connection = create_connection()
     if connection is None:
@@ -173,22 +199,42 @@ def index_puesto_de_trabajo():
 @app_puesto_de_trabajo.route('/submit', methods=['POST'])
 def submit():
     id_documento = request.form.get('id_documento')
-    fecha = request.form.get('fecha')  # Corregido 'id_fecha' a 'fecha'
+    fecha = request.form.get('fecha')
     hora_inicio = request.form.get('hora_inicio')
     hora_fin = request.form.get('hora_fin')
     puesto_trabajo = request.form.get('puesto_trabajo')
     salario = request.form.get('salario')
+
+    # Validaciones
+    validation_errors = []
     
-    # Imprimir los datos para depuración
-    print(f"id_documento: {id_documento}")
-    print(f"fecha: {fecha}")
-    print(f"hora_inicio: {hora_inicio}")
-    print(f"hora_fin: {hora_fin}")
-    print(f"puesto_trabajo: {puesto_trabajo}")
-    print(f"salario: {salario}")
-    
+    fecha_error = validate_fecha(fecha)
+    if fecha_error:
+        validation_errors.append(fecha_error)
+
+    hora_inicio_error = validate_time(hora_inicio)
+    if hora_inicio_error:
+        validation_errors.append(hora_inicio_error)
+
+    hora_fin_error = validate_time(hora_fin)
+    if hora_fin_error:
+        validation_errors.append(hora_fin_error)
+
+    puesto_trabajo_error = validate_puesto_trabajo(puesto_trabajo)
+    if puesto_trabajo_error:
+        validation_errors.append(puesto_trabajo_error)
+
+    salario_error = validate_salary(salario)
+    if salario_error:
+        validation_errors.append(salario_error)
+
+    if validation_errors:
+        for error in validation_errors:
+            flash(error)
+        return redirect(url_for('index_puesto_de_trabajo'))
+
     try:
-        salario_decimal = float(salario)  # Asegurarse de que el salario sea un número decimal
+        salario_decimal = float(salario)  # Asegúrate de que el salario sea un número decimal
     except ValueError:
         flash('El salario debe ser un número decimal válido.')
         return redirect(url_for('index_puesto_de_trabajo'))
@@ -200,7 +246,6 @@ def submit():
 
     return redirect(url_for('index_puesto_de_trabajo'))
 
-
 @app_puesto_de_trabajo.route('/puesto_de_trabajo')
 def puesto_de_trabajo():
     search_query = request.args.get('search_query', '')
@@ -208,27 +253,26 @@ def puesto_de_trabajo():
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 10))
 
-    puesto_de_trabajo, total_count = get_puesto_de_trabajo(page, per_page, search_criteria, search_query)
+    puesto_de_trabajo_list, total_count = get_puesto_de_trabajo(page, per_page, search_criteria, search_query)
+    documento_empleado = get_documento_empleado()
 
-    puesto_de_trabajo_con_documento_empleado = [
-        (item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7])  
-        for item in puesto_de_trabajo
-    ]
-
-    total_pages = (total_count // per_page) + (1 if total_count % per_page > 0 else 0)
+    # Calcular el número total de páginas
+    total_pages = (total_count + per_page - 1) // per_page
 
     return render_template(
         'puesto_de_trabajo.html',
-        puesto_de_trabajo=puesto_de_trabajo_con_documento_empleado,
+        puesto_de_trabajo=puesto_de_trabajo_list,
+        documento_empleado=documento_empleado,
+        total_count=total_count,
         page=page,
-        total_pages=total_pages,
-        search_query=search_query,
-        search_criteria=search_criteria,
-        per_page=per_page
+        per_page=per_page,
+        total_pages=total_pages
     )
 
-@app_puesto_de_trabajo.route('/edit_puesto_de_trabajo/<int:id_puesto>', methods=['GET', 'POST'])
+
+@app_puesto_de_trabajo.route('/edit/<int:id_puesto>', methods=['GET', 'POST'])
 def edit_puesto_de_trabajo(id_puesto):
+    documento_empleado = get_documento_empleado()
     if request.method == 'POST':
         fecha = request.form.get('fecha')
         hora_inicio = request.form.get('hora_inicio')
@@ -236,74 +280,54 @@ def edit_puesto_de_trabajo(id_puesto):
         puesto_trabajo = request.form.get('puesto_trabajo')
         salario = request.form.get('salario')
 
-        if not fecha or not hora_inicio or not hora_fin or not puesto_trabajo or not salario:
-            flash('¡Todos los campos obligatorios deben ser completados!')
+        validation_errors = []
+        
+        fecha_error = validate_fecha(fecha)
+        if fecha_error:
+            validation_errors.append(fecha_error)
+
+        hora_inicio_error = validate_time(hora_inicio)
+        if hora_inicio_error:
+            validation_errors.append(hora_inicio_error)
+
+        hora_fin_error = validate_time(hora_fin)
+        if hora_fin_error:
+            validation_errors.append(hora_fin_error)
+
+        puesto_trabajo_error = validate_puesto_trabajo(puesto_trabajo)
+        if puesto_trabajo_error:
+            validation_errors.append(puesto_trabajo_error)
+
+        salario_error = validate_salary(salario)
+        if salario_error:
+            validation_errors.append(salario_error)
+
+        if validation_errors:
+            for error in validation_errors:
+                flash(error)
             return redirect(url_for('edit_puesto_de_trabajo', id_puesto=id_puesto))
 
         if update_puesto_de_trabajo(id_puesto, fecha, hora_inicio, hora_fin, puesto_trabajo, salario):
-            flash('Puesto de trabajo editado exitosamente!')
+            flash('Puesto de trabajo actualizado exitosamente!')
         else:
-            flash('Error al editar el puesto de trabajo.')
+            flash('Error al actualizar el puesto de trabajo.')
 
-        return redirect(url_for('puesto_de_trabajo'))
-    else:
-        puesto_de_trabajo = get_puesto_de_trabajo_by_id(id_puesto)
-        documento_empleado = get_documento_empleado()  # Para cargar los datos en el formulario de edición
-
-        if puesto_de_trabajo:
-            return render_template(
-                'edit_puesto_de_trabajo.html', 
-                puesto_de_trabajo=puesto_de_trabajo,
-                documento_empleado=documento_empleado
-            )
-        else:
-            flash('El puesto de trabajo no existe.')
-            return redirect(url_for('puesto_de_trabajo'))
-
-        
-
-
-@app_puesto_de_trabajo.route('/eliminar_puesto_de_trabajo/<int:id_puesto>', methods=['GET', 'POST'])
-def eliminar_puesto_de_trabajo(id_puesto):
-    if request.method == 'POST':
-        if delete_puesto_de_trabajo(id_puesto):
-            flash('¡Puesto de trabajo eliminado exitosamente!')
-        else:
-            flash('Ocurrió un error al eliminar el puesto de trabajo.')
         return redirect(url_for('puesto_de_trabajo'))
 
     puesto_de_trabajo = get_puesto_de_trabajo_by_id(id_puesto)
-    if puesto_de_trabajo is None:
-        flash('¡Puesto de trabajo no encontrado!')
+    if not puesto_de_trabajo:
+        flash('Puesto de trabajo no encontrado.')
         return redirect(url_for('puesto_de_trabajo'))
-    
-    return render_template('eliminar_puesto_de_trabajo.html', puesto_de_trabajo=puesto_de_trabajo)
 
-    
+    return render_template('edit_puesto_de_trabajo.html', puesto_de_trabajo=puesto_de_trabajo, documento_empleado=documento_empleado)
 
-
-@app_puesto_de_trabajo.route('/get_documento/<int:id_documento>', methods=['GET'])
-def get_documento(id_documento):
-    connection = create_connection()
-    if connection is None:
-        return {'documento': ''}  # Devuelve un objeto JSON vacío en caso de error
-    
-    cursor = connection.cursor()
-    query = "SELECT documento FROM documento_empleado WHERE id_documento = %s"
-    try:
-        cursor.execute(query, (id_documento,))
-        result = cursor.fetchone()
-        if result:
-            return {'documento': result[0]}  # Devuelve el documento encontrado como JSON
-        else:
-            return {'documento': ''}  # Si no se encuentra el documento, devuelve vacío
-    except Error as e:
-        print(f"Error al obtener el documento: {e}")
-        return {'documento': ''}
-    finally:
-        cursor.close()
-        connection.close()
-
+@app_puesto_de_trabajo.route('/delete/<int:id_puesto>', methods=['POST'])
+def delete_puesto_de_trabajo_route(id_puesto):
+    if delete_puesto_de_trabajo(id_puesto):
+        flash('Puesto de trabajo eliminado exitosamente!')
+    else:
+        flash('Error al eliminar el puesto de trabajo.')
+    return redirect(url_for('puesto_de_trabajo'))
 
 if __name__ == '__main__':
     app_puesto_de_trabajo.run(debug=True,port=5007)

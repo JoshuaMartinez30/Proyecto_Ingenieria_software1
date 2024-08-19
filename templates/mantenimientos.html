@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h1>Lista de Mantenimientos</h1>
-        <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+        <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
         <form method="GET" action="{{ url_for('mantenimientos') }}">
             <input type="text" name="search" placeholder="Buscar" value="{{ search_query }}">
             <button class="button-link ing" type="submit">Buscar</button>
@@ -39,7 +39,7 @@
                     <td>{{ mantenimiento[6] }}</td>
                     <td>
                         <a class="button-link baa" href="{{ url_for('edit_mantenimiento', id_mantenimiento=mantenimiento[0]) }}">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
-                        <a class="button-link bee" href="{{ url_for('eliminar_mantenimiento', id_mantenimiento=mantenimiento[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                        <a class="button-link bee" href="{{ url_for('delete_mantenimiento_route', id_mantenimiento=mantenimiento[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                     </td>
                 </tr>
                 {% endfor %}
