@@ -13,7 +13,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -58,13 +58,26 @@ def insert_inventario(id_producto, id_categoria, cantidad_en_stock, stock_minimo
         cursor.close()
         connection.close()
 
-def get_inventario(page, per_page, search_criteria=None, search_query=None):
+def get_inventario(page, per_page, search_criteria=None, search_query=None, order_by='id_inventario'):
     connection = create_connection()
     if connection is None:
         return [], 0
     cursor = connection.cursor()
     offset = (page - 1) * per_page
 
+    # Validar el search_criteria
+    valid_criteria = ['id_inventario', 'cantidad_en_stock', 'stock_minimo', 'stock_maximo', 'nombre_producto', 'nombre_categoria']
+    if search_criteria == 'nombre_producto':
+        search_criteria = 'p.nombre'  # Ajustar el nombre del campo en la consulta
+    elif search_criteria not in valid_criteria:
+        search_criteria = None
+
+    # Validar el order_by
+    valid_order_by_columns = ['id_inventario', 'cantidad_en_stock', 'stock_minimo', 'stock_maximo']
+    if order_by not in valid_order_by_columns:
+        order_by = 'id_inventario'  # Valor predeterminado en caso de que order_by sea inválido
+
+    # Consulta SQL con depuración
     if search_criteria and search_query:
         query = f"""
             SELECT i.id_inventario, i.id_producto, i.id_categoria, i.cantidad_en_stock, 
@@ -74,25 +87,43 @@ def get_inventario(page, per_page, search_criteria=None, search_query=None):
             JOIN producto p ON i.id_producto = p.id_producto
             JOIN categorias c ON i.id_categoria = c.id_categoria
             WHERE {search_criteria} LIKE %s 
+            ORDER BY {order_by} ASC
             LIMIT %s OFFSET %s
         """
         values = (f'%{search_query}%', per_page, offset)
     else:
-        query = """
+        query = f"""
             SELECT i.id_inventario, i.id_producto, i.id_categoria, i.cantidad_en_stock, 
                    i.stock_minimo, i.stock_maximo, 
                    p.nombre AS nombre_producto, c.nombre_categoria
             FROM inventario i
             JOIN producto p ON i.id_producto = p.id_producto
             JOIN categorias c ON i.id_categoria = c.id_categoria
+            ORDER BY {order_by} ASC
             LIMIT %s OFFSET %s
         """
         values = (per_page, offset)
 
     try:
+        print(f"Executing query: {query}")
+        print(f"Values: {values}")
         cursor.execute(query, values)
         inventario = cursor.fetchall()
-        cursor.execute("SELECT FOUND_ROWS()")
+        
+        # Contar el total de inventarios
+        if search_criteria and search_query:
+            count_query = f"""
+                SELECT COUNT(*) 
+                FROM inventario i
+                JOIN producto p ON i.id_producto = p.id_producto
+                JOIN categorias c ON i.id_categoria = c.id_categoria
+                WHERE {search_criteria} LIKE %s
+            """
+            cursor.execute(count_query, (f'%{search_query}%',))
+        else:
+            count_query = "SELECT COUNT(*) FROM inventario"
+            cursor.execute(count_query)
+        
         total_count = cursor.fetchone()[0]
         return inventario, total_count
     except Error as e:
@@ -101,6 +132,8 @@ def get_inventario(page, per_page, search_criteria=None, search_query=None):
     finally:
         cursor.close()
         connection.close()
+
+
 
 def get_categorias():
     connection = create_connection()
@@ -234,33 +267,36 @@ def submit():
 
     return redirect(url_for('index_inventario'))
 
-from flask import request, render_template
-
 @app_inventario.route('/inventario')
 def inventario():
     search_query = request.args.get('search_query', '')
     search_criteria = request.args.get('search_criteria', 'id_inventario')
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 10))
+    order_by = request.args.get('order_by', 'id_inventario')  # Por defecto, ordena por 'id_inventario'
 
-    inventario, total_count = get_inventario(page, per_page, search_criteria, search_query)
+    inventario, total_count = get_inventario(page, per_page, search_criteria, search_query, order_by)
 
-    # Convert to list of tuples with product and category names
+    # Calcular el número total de páginas
+    total_pages = (total_count + per_page - 1) // per_page
+
+    # Convertir a lista de tuplas con nombres de productos y categorías
     inventario_con_categorias = [
         (item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7])
         for item in inventario
     ]
 
-    # Calculate total pages
-    total_pages = (total_count + per_page - 1) // per_page
+    return render_template(
+        'inventario.html',
+        inventario=inventario_con_categorias,
+        page=page,
+        per_page=per_page,
+        total_count=total_count,
+        total_pages=total_pages,
+        search_query=search_query,
+        order_by=order_by
+    )
 
-    return render_template('inventario.html', 
-                           inventario=inventario_con_categorias, 
-                           page=page, 
-                           per_page=per_page, 
-                           total_count=total_count, 
-                           total_pages=total_pages, 
-                           search_query=search_query)
 
 @app_inventario.route('/edit_inventario/<int:id_inventario>', methods=['GET', 'POST'])
 def edit_inventario(id_inventario):
@@ -271,19 +307,12 @@ def edit_inventario(id_inventario):
         stock_minimo = request.form.get('stock_minimo')
         stock_maximo = request.form.get('stock_maximo')
         
-        error_message = None
-        error_message = validate_text_field(id_producto, 'Producto')
-        if error_message is None:
-            error_message = validate_text_field(id_categoria, 'Categoría')
-        if error_message is None:
-            error_message = validate_numeric_field(cantidad_en_stock, 'Cantidad en Stock')
-        if error_message is None:
-            error_message = validate_numeric_field(stock_minimo, 'Stock Mínimo')
-        if error_message is None:
-            error_message = validate_numeric_field(stock_maximo, 'Stock Máximo')
-
-        if error_message:
-            flash(error_message)
+        # Imprimir los valores recibidos para depuración
+        print(f"id_producto: {id_producto}, id_categoria: {id_categoria}, cantidad_en_stock: {cantidad_en_stock}, stock_minimo: {stock_minimo}, stock_maximo: {stock_maximo}")
+        
+        # Validar que los campos sean numéricos
+        if not (cantidad_en_stock.isdigit() and stock_minimo.isdigit() and stock_maximo.isdigit()):
+            flash('Todos los campos deben contener valores numéricos.')
             return redirect(url_for('edit_inventario', id_inventario=id_inventario))
 
         if update_inventario(id_inventario, id_producto, id_categoria, cantidad_en_stock, stock_minimo, stock_maximo):
@@ -303,8 +332,10 @@ def edit_inventario(id_inventario):
 
     return render_template('edit_inventario.html', inventario=inventario, categorias=categorias, productos=productos)
 
-@app_inventario.route('/delete_inventario/<int:id_inventario>', methods=['POST'])
-def delete_inventario_route(id_inventario):
+
+
+@app_inventario.route('/eliminar_inventario/<int:id_inventario>', methods=['POST'])
+def eliminar_inventario(id_inventario):
     if delete_inventario(id_inventario):
         flash('Inventario eliminado exitosamente!')
     else:

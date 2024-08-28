@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
-import re, datetime
+import re
+import datetime
 
 app_empleados = Flask(__name__)
 app_empleados.secret_key = 'your_secret_key'
@@ -12,7 +13,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -21,42 +22,35 @@ def create_connection():
         print(f"The error '{e}' occurred")
     return connection
 
-def format_telefono(telefono):
-    telefono = re.sub(r'\D', '', telefono)
-    return f"{telefono[:4]}-{telefono[4:]}"
-
-def format_dni(documento):
-    documento = re.sub(r'\D', '', documento)
-    return f"{documento[:4]}-{documento[4:8]}-{documento[8:]}"
-
-def insert_user(nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento):
+def insert_user(nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = """INSERT INTO empleados (nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    values = (nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento)
+    query = """INSERT INTO empleados (nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    values = (nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password)
     try:
         cursor.execute(query, values)
         connection.commit()
+        print("Insert successful")  # Debugging line
         return True
     except Error as e:
-        print(f"The error '{e}' occurred")
+        print(f"The error '{e}' occurred")  # Ensure this prints out any issues
         return False
     finally:
         cursor.close()
         connection.close()
 
-def update_user(id_empleado, nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento):
+def update_user(id_empleado, nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password):
     connection = create_connection()
     if connection is None:
         return False
     cursor = connection.cursor()
-    query = """UPDATE empleados SET nombre = %s, apellido = %s, fecha_nacimiento = %s, puesto_trabajo = %s,
-               fecha_contratacion = %s, sucursal = %s, email = %s, telefono = %s, tipo = %s, documento = %s
+    query = """UPDATE empleados SET nombre = %s, apellido = %s, fecha_nacimiento = %s, id_puesto = %s,
+               fecha_contratacion = %s, id_sucursal = %s, email = %s, telefono = %s, tipo = %s, documento = %s, password = %s
                WHERE id_empleado = %s"""
-    values = (nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento, id_empleado)
+    values = (nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password, id_empleado)
     try:
         cursor.execute(query, values)
         connection.commit()
@@ -159,6 +153,24 @@ def get_sucursales():
         cursor.close()
         connection.close()
 
+def get_puestos_de_trabajo():
+    connection = create_connection()
+    if connection is None:
+        return []
+    cursor = connection.cursor()
+    query = "SELECT id_puesto, puesto_trabajo FROM puesto_de_trabajo"
+    try:
+        cursor.execute(query)
+        puestos = cursor.fetchall()
+        return puestos
+    except Error as e:
+        print(f"The error '{e}' occurred")
+        return []
+    finally:
+        cursor.close()
+        connection.close()
+
+
 def get_historico_empleados(page, per_page):
     connection = create_connection()
     if connection is None:
@@ -191,7 +203,8 @@ def historico_empleados():
 @app_empleados.route('/')
 def index_empleados():
     sucursales = get_sucursales()
-    return render_template('index_empleados.html', sucursales=sucursales)
+    puestos_de_trabajo = get_puestos_de_trabajo()  # Obtener puestos de trabajo
+    return render_template('index_empleados.html', puestos_de_trabajo=puestos_de_trabajo, sucursales=sucursales)
 
 @app_empleados.route('/empleados')
 def empleados():
@@ -210,188 +223,76 @@ def empleados():
 
 @app_empleados.route('/submit', methods=['POST'])
 def submit():
-    nombre = request.form['nombre']
-    apellido = request.form['apellido']
-    fecha_nacimiento = request.form['fecha_nacimiento']
-    puesto_trabajo = request.form['puesto_trabajo']
-    fecha_contratacion = request.form['fecha_contratacion']
-    sucursal = request.form['sucursal']
-    email = request.form['email']
-    telefono = request.form['telefono']
-    tipo = request.form['tipo']
-    documento = request.form['documento']
+    nombre = request.form.get('nombre')
+    apellido = request.form.get('apellido')
+    fecha_nacimiento = request.form.get('fecha_nacimiento')
+    id_puesto = request.form.get('id_puesto')
+    fecha_contratacion = request.form.get('fecha_contratacion')
+    id_sucursal = request.form.get('id_sucursal')  # Usando id_sucursal
+    email = request.form.get('email')
+    telefono = request.form.get('telefono')
+    tipo = request.form.get('tipo')
+    documento = request.form.get('documento')
+    password = request.form.get('password')
 
-    tipo_documento_validations = {
-        'Número de Identidad': r'^\d{13}$',
-        'RTN': r'^\d{14}$',
-        'Pasaporte': r'^E\d{7}$'
-    }
-
-    # Validación de fecha de nacimiento (mínimo 17 años)
-    try:
-        fecha_nacimiento_date = datetime.datetime.strptime(fecha_nacimiento, '%Y-%m-%d')
-        age = (datetime.datetime.now() - fecha_nacimiento_date).days // 365
-        if age < 17:
-            flash('Edad mínima 17 años.')
-            return redirect(url_for('index_empleados'))
-    except ValueError:
-        flash('Fecha de nacimiento inválida.')
-        return redirect(url_for('index_empleados'))
-
-    # Validación de fecha de contratación (no puede ser mayor a 7 días en el pasado)
-    try:
-        fecha_contratacion_date = datetime.datetime.strptime(fecha_contratacion, '%Y-%m-%d')
-        if (datetime.datetime.now() - fecha_contratacion_date).days > 7:
-            flash('El tiempo de registro ya pasó.')
-            return redirect(url_for('index_empleados'))
-    except ValueError:
-        flash('Fecha de contratación inválida.')
-        return redirect(url_for('index_empleados'))
-
-    # Validación de teléfono (debe comenzar con 2, 3, 7, 8 o 9 y tener 8 dígitos)
-    if not re.match(r'^[23789]\d{7}$', telefono):
-        flash('El número de teléfono no es válido. Debe empezar con 2, 3, 7, 8 o 9 y tener 8 dígitos.')
-        return redirect(url_for('index_empleados'))
-    telefono = format_telefono(telefono)
-
-    if not all([nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento]):
-        flash('Todos los campos son obligatorios.')
-        return redirect(url_for('index_empleados'))
-
-    for input_value in [nombre, apellido, puesto_trabajo, email, tipo]:
-        if len(input_value) < 3:
-            flash(f"{input_value} debe tener al menos 3 caracteres.")
-            return redirect(url_for('index_empleados'))
-        if len(input_value) > 20:
-            flash(f"{input_value} debe tener menos de 20 caracteres.")
-            return redirect(url_for('index_empleados'))
-        if re.search(r'\d', input_value):
-            flash(f"{input_value} no debe contener números.")
-            return redirect(url_for('index_empleados'))
-        if re.search(r'[!@#$%^&*(),.?":{}|<>]', input_value):
-            flash(f"{input_value} no debe contener caracteres especiales.")
-            return redirect(url_for('index_empleados'))
-
-    # Validación del documento
-    if tipo not in tipo_documento_validations:
-        flash('Tipo de documento no válido.')
-        return redirect(url_for('index_empleados'))
     
-    document_pattern = tipo_documento_validations[tipo]
-    if not re.match(document_pattern, documento):
-        flash('Documento no válido.')
-        return redirect(url_for('index_empleados'))
-
-    if tipo == 'Número de Identidad':
-        documento = format_dni(documento)
-
-    success = insert_user(nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento)
-    if success:
-        flash('Empleado añadido con éxito.')
+    if insert_user(nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password):
+        flash("Empleado agregado correctamente.")
     else:
-        flash('Error al añadir el empleado.')
-    return redirect(url_for('index_empleados'))
+        flash("Error al agregar el empleado.")
 
-@app_empleados.route('/edit/<int:id_empleado>', methods=['GET', 'POST'])
+    return redirect(url_for('empleados'))
+
+
+@app_empleados.route('/edit_empleados/<int:id_empleado>', methods=['GET', 'POST'])
 def edit_empleados(id_empleado):
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        apellido = request.form['apellido']
-        fecha_nacimiento = request.form['fecha_nacimiento']
-        puesto_trabajo = request.form['puesto_trabajo']
-        fecha_contratacion = request.form['fecha_contratacion']
-        sucursal = request.form['sucursal']
-        email = request.form['email']
-        telefono = request.form['telefono']
-        tipo = request.form['tipo']
-        documento = request.form['documento']
+    nombre = request.form.get('nombre')
+    apellido = request.form.get('apellido')
+    fecha_nacimiento = request.form.get('fecha_nacimiento')
+    id_puesto = request.form.get('id_puesto')
+    fecha_contratacion = request.form.get('fecha_contratacion')
+    id_sucursal = request.form.get('id_sucursal')  # Usando id_sucursal
+    email = request.form.get('email')
+    telefono = request.form.get('telefono')
+    tipo = request.form.get('tipo')
+    documento = request.form.get('documento')
+    password = request.form.get('password')
 
-        tipo_documento_validations = {
-            'Número de Identidad': r'^\d{13}$',
-            'RTN': r'^\d{14}$',
-            'Pasaporte': r'^E\d{7}$'
-        }
 
-        # Validación de fecha de nacimiento (mínimo 17 años)
-        try:
-            fecha_nacimiento_date = datetime.datetime.strptime(fecha_nacimiento, '%Y-%m-%d')
-            age = (datetime.datetime.now() - fecha_nacimiento_date).days // 365
-            if age < 18:
-                flash('Edad mínima 18 años.')
-                return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-        except ValueError:
-            flash('Fecha de nacimiento inválida.')
-            return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-
-        # Validación de fecha de contratación (no puede ser mayor a 7 días en el pasado)
-        try:
-            fecha_contratacion_date = datetime.datetime.strptime(fecha_contratacion, '%Y-%m-%d')
-            if (datetime.datetime.now() - fecha_contratacion_date).days > 7:
-                flash('El tiempo de registro ya pasó.')
-                return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-        except ValueError:
-            flash('Fecha de contratación inválida.')
-            return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-
-        # Validación de teléfono (debe comenzar con 2, 3, 7, 8 o 9 y tener 8 dígitos)
-        if not re.match(r'^[23789]\d{7}$', telefono):
-            flash('El número de teléfono no es válido. Debe empezar con 2, 3, 7, 8 o 9 y tener 8 dígitos.')
-            return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-        telefono = format_telefono(telefono)
-
-        if not all([nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento]):
-            flash('Todos los campos son obligatorios.')
-            return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-
-        for input_value in [nombre, apellido, puesto_trabajo, email, tipo]:
-            if len(input_value) < 3:
-                flash(f"{input_value} debe tener al menos 3 caracteres.")
-                return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-            if len(input_value) > 20:
-                flash(f"{input_value} debe tener menos de 20 caracteres.")
-                return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-            if re.search(r'\d', input_value):
-                flash(f"{input_value} no debe contener números.")
-                return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-            if re.search(r'[!@#$%^&*(),.?":{}|<>]', input_value):
-                flash(f"{input_value} no debe contener caracteres especiales.")
-                return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-
-        if tipo not in tipo_documento_validations:
-            flash('Tipo de documento no válido.')
-            return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-        
-        document_pattern = tipo_documento_validations[tipo]
-        if not re.match(document_pattern, documento):
-            flash('Documento no válido.')
-            return redirect(url_for('edit_empleados', id_empleado=id_empleado))
-
-        if tipo == 'Número de Identidad':
-            documento = format_dni(documento)
-
-        success = update_user(id_empleado, nombre, apellido, fecha_nacimiento, puesto_trabajo, fecha_contratacion, sucursal, email, telefono, tipo, documento)
-        if success:
-            flash('Empleado actualizado con éxito.')
-        else:
-            flash('Error al actualizar el empleado.')
-        return redirect(url_for('empleados'))
 
     empleado = get_empleados_by_id(id_empleado)
-    if empleado is None:
-        flash('Empleado no encontrado.')
+    if not empleado:
+        flash("Empleado no encontrado.")
+        return redirect(url_for('empleados'))
+    
+    if update_user(id_empleado, nombre, apellido, fecha_nacimiento, id_puesto, fecha_contratacion, id_sucursal, email, telefono, tipo, documento, password):
+        flash('Usuario actualizado exitosamente.')
+    else:
+        flash('Ocurrió un error al actualizar el usuario.')
+    
+    sucursales = get_sucursales()
+    puestos_de_trabajo = get_puestos_de_trabajo()
+    return render_template('edit_empleados.html', empleado=empleado, puestos_de_trabajo=puestos_de_trabajo, sucursales=sucursales)
+
+@app_empleados.route('/eliminar_empleados/<int:id_empleado>', methods=['GET', 'POST'])
+def eliminar_empleados(id_empleado):
+    if request.method == 'POST':
+        if delete_user(id_empleado):
+            flash('¡empleados eliminada exitosamente!')
+            return redirect(url_for('empleados'))
+        else:
+            flash('Ocurrió un error al eliminar el empleados. Por favor, intente nuevamente.')
+            return redirect(url_for('empleados'))
+
+    empleados = get_empleados_by_id(id_empleado)
+    if empleados is None:
+        flash('empleados no encontrada.')
         return redirect(url_for('empleados'))
 
-    sucursales = get_sucursales()
-    return render_template('edit_empleados.html', empleado=empleado, sucursales=sucursales)
+    return render_template('eliminar_empleados.html', empleados=empleados)
 
-@app_empleados.route('/delete/<int:id_empleado>', methods=['POST'])
-def eliminar_empleados(id_empleado):
-    success = delete_user(id_empleado)
-    if success:
-        flash('Empleado eliminado con éxito.')
-    else:
-        flash('Error al eliminar el empleado.')
-    return redirect(url_for('empleados'))
+
+
 
 if __name__ == '__main__':
     app_empleados.run(debug=True,port=5003)

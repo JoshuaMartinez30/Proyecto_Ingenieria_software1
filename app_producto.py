@@ -11,7 +11,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -42,7 +42,6 @@ def insert_producto(nombre, id_categoria, id_proveedor, original_precio, id_impu
         cursor.close()
         connection.close()
 
-
 def get_producto(page, per_page, search_criteria=None, search_query=None):
     connection = create_connection()
     if connection is None:
@@ -50,6 +49,12 @@ def get_producto(page, per_page, search_criteria=None, search_query=None):
     cursor = connection.cursor()
     offset = (page - 1) * per_page
 
+    # Validar el search_criteria
+    valid_criteria = ['id_producto', 'nombre', 'nombre_categoria', 'Nombre_del_proveedor', 'original_precio']
+    if search_criteria not in valid_criteria:
+        search_criteria = None
+
+    # Consulta SQL con depuración
     if search_criteria and search_query:
         query = f"""
             SELECT p.id_producto, p.nombre, p.id_categoria, p.id_proveedor, 
@@ -61,7 +66,8 @@ def get_producto(page, per_page, search_criteria=None, search_query=None):
             JOIN impuesto i ON p.id_impuesto = i.id_impuesto
             JOIN promocion prom ON p.id_promocion = prom.id_promocion
             JOIN garantia g ON p.id_garantia = g.id_garantia
-            WHERE {search_criteria} LIKE %s 
+            WHERE p.{search_criteria} LIKE %s
+            ORDER BY p.id_producto
             LIMIT %s OFFSET %s
         """
         values = (f'%{search_query}%', per_page, offset)
@@ -76,14 +82,34 @@ def get_producto(page, per_page, search_criteria=None, search_query=None):
             JOIN impuesto i ON p.id_impuesto = i.id_impuesto
             JOIN promocion prom ON p.id_promocion = prom.id_promocion
             JOIN garantia g ON p.id_garantia = g.id_garantia
+            ORDER BY p.id_producto
             LIMIT %s OFFSET %s
         """
         values = (per_page, offset)
 
     try:
+        print(f"Executing query: {query}")
+        print(f"Values: {values}")
         cursor.execute(query, values)
         producto = cursor.fetchall()
-        cursor.execute("SELECT FOUND_ROWS()")
+        
+        # Contar el total de productos
+        if search_criteria and search_query:
+            count_query = f"""
+                SELECT COUNT(*) 
+                FROM producto p
+                JOIN categorias c ON p.id_categoria = c.id_categoria
+                JOIN proveedores pro ON p.id_proveedor = pro.id_proveedor
+                JOIN impuesto i ON p.id_impuesto = i.id_impuesto
+                JOIN promocion prom ON p.id_promocion = prom.id_promocion
+                JOIN garantia g ON p.id_garantia = g.id_garantia
+                WHERE p.{search_criteria} LIKE %s
+            """
+            cursor.execute(count_query, (f'%{search_query}%',))
+        else:
+            count_query = "SELECT COUNT(*) FROM producto"
+            cursor.execute(count_query)
+        
         total_count = cursor.fetchone()[0]
         return producto, total_count
     except Error as e:
@@ -327,16 +353,11 @@ def producto():
 
     producto, total_count = get_producto(page, per_page, search_criteria, search_query)
 
-    producto_con_categorias = [
-        (item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], item[10], item[11], item[12])  
-        for item in producto
-    ]
-
-    total_pages = (total_count // per_page) + (1 if total_count % per_page > 0 else 0)
+    total_pages = (total_count + per_page - 1) // per_page  # Asegúrate de que el cálculo sea correcto
 
     return render_template(
         'producto.html',
-        producto=producto_con_categorias,
+        producto=producto,
         page=page,
         total_pages=total_pages,
         search_query=search_query,

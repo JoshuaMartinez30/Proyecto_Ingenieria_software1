@@ -12,7 +12,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -68,6 +68,29 @@ def get_detalles(page, per_page):
     finally:
         cursor.close()
         connection.close()
+
+@app_detalle_p.route('/get_inventario/<int:id_producto>', methods=['GET'])
+def get_inventario(id_producto):
+    connection = create_connection()
+    if connection is None:
+        return {"cantidad_en_stock": 0, "stock_maximo": 1000}, 500
+    cursor = connection.cursor()
+    query = "SELECT cantidad_en_stock FROM inventario WHERE id_producto = %s"
+    try:
+        cursor.execute(query, (id_producto,))
+        result = cursor.fetchone()
+        if result:
+            cantidad_en_stock = int(result[0])
+            return {"cantidad_en_stock": cantidad_en_stock, "stock_maximo": 1000}, 200
+        else:
+            return {"cantidad_en_stock": 0, "stock_maximo": 1000}, 404
+    except Error as e:
+        print(f"Error '{e}' ocurrió")
+        return {"cantidad_en_stock": 0, "stock_maximo": 1000}, 500
+    finally:
+        cursor.close()
+        connection.close()
+
 
 def get_detalle_by_id(id_detalle):
     connection = create_connection()
@@ -129,22 +152,36 @@ def delete_detalle(id_detalle):
 def index_detalle_p():
     connection = create_connection()
     if connection is None:
-        return render_template('index_detalle_p.html', pedidos=[], productos=[], impuestos=[])
+        return render_template('index_detalle_p.html', pedidos=[], productos=[], impuestos=[], max_pedido=None)
+
     cursor = connection.cursor()
 
+    # Obtener todos los pedidos
     cursor.execute("SELECT id_pedido FROM pedido_de_compra_proveedor")
     pedidos = cursor.fetchall()
 
-    cursor.execute("SELECT id_producto, nombre FROM producto")
+    # Obtener el máximo id_pedido
+    cursor.execute("SELECT MAX(id_pedido) FROM pedido_de_compra_proveedor")
+    max_pedido = cursor.fetchone()[0]
+
+    # Obtener productos del proveedor del máximo pedido
+    cursor.execute("""
+        SELECT p.id_producto, p.nombre 
+        FROM producto p
+        JOIN pedido_de_compra_proveedor pp ON p.id_proveedor = pp.id_proveedor
+        WHERE pp.id_pedido = %s
+    """, (max_pedido,))
     productos = cursor.fetchall()
 
+    # Obtener todos los impuestos
     cursor.execute("SELECT id_impuesto, tasa_impuesto FROM impuesto")
     impuestos = cursor.fetchall()
-    
+
     cursor.close()
     connection.close()
 
-    return render_template('index_detalle_p.html', pedidos=pedidos, productos=productos, impuestos=impuestos)
+    return render_template('index_detalle_p.html', pedidos=pedidos, productos=productos, impuestos=impuestos, max_pedido=max_pedido)
+
 
 @app_detalle_p.route('/detalles_p')
 def detalles_p():
@@ -171,6 +208,22 @@ def submit_detalle():
     result = cursor.fetchone()
     cursor.close()
     connection.close()
+    
+    # Validación de inventario
+    connection = create_connection()
+    cursor = connection.cursor()
+    query = "SELECT cantidad_en_stock FROM inventario WHERE id_producto = %s"
+    cursor.execute(query, (id_producto,))
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+
+    if result:
+        cantidad_en_stock = result[0]
+        if cantidad_en_stock + cantidad > 1000:
+            flash(f'No puedes comprar más de {1000 - cantidad_en_stock} unidades de este producto.')
+            return redirect(url_for('index_detalle_p'))
+
 
     if result is None:
         flash('Impuesto no encontrado!')
@@ -178,6 +231,7 @@ def submit_detalle():
 
     tasa_impuesto = result[0]
     tasa_impuesto = float(tasa_impuesto) if isinstance(tasa_impuesto, Decimal) else float(tasa_impuesto)
+    tasa_impuesto= tasa_impuesto/100
     total = (subtotal * tasa_impuesto) + subtotal
 
     if not id_pedido or not id_producto or not cantidad or not precio_unitario or not subtotal or not id_impuesto or not total:
@@ -255,22 +309,29 @@ def eliminar_detalle_p(id_detalle):
 def get_precio(id_producto):
     connection = create_connection()
     if connection is None:
-        return {"precio_unitario": 0}, 500
+        return {"precio_unitario": 0, "cantidad_en_stock": 0, "stock_maximo": 0}, 500
     cursor = connection.cursor()
-    query = "SELECT original_precio FROM producto WHERE id_producto = %s"
+    query = """
+        SELECT p.original_precio, i.cantidad_en_stock, i.stock_maximo 
+        FROM producto p 
+        JOIN inventario i ON p.id_producto = i.id_producto 
+        WHERE p.id_producto = %s
+    """
     try:
         cursor.execute(query, (id_producto,))
         result = cursor.fetchone()
         if result:
-            return {"precio_unitario": float(result[0])}, 200
+            precio_unitario, cantidad_en_stock, stock_maximo = result
+            return {"precio_unitario": float(precio_unitario), "cantidad_en_stock": int(cantidad_en_stock), "stock_maximo": int(stock_maximo)}, 200
         else:
-            return {"precio_unitario": 0}, 404
+            return {"precio_unitario": 0, "cantidad_en_stock": 0, "stock_maximo": 0}, 404
     except Error as e:
         print(f"Error '{e}' ocurrió")
-        return {"precio_unitario": 0}, 500
+        return {"precio_unitario": 0, "cantidad_en_stock": 0, "stock_maximo": 0}, 500
     finally:
         cursor.close()
         connection.close()
+
 
 if __name__ == '__main__':
     app_detalle_p.run(debug=True,port=5022)

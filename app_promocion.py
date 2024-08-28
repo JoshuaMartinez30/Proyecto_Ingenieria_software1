@@ -12,7 +12,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -176,7 +176,7 @@ def agregar_promocion():
             flash("Error al agregar la promoción")
 
         return redirect(url_for('promocion'))
-    return render_template('index_promocion.html')
+    return render_template('agregar_promocion.html')
 
 @app_promocion.route('/promocion/editar/<int:id_promocion>', methods=['GET', 'POST'])
 def editar_promocion(id_promocion):

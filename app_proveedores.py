@@ -12,7 +12,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -209,7 +209,7 @@ def validate_input(field_value, field_type='text', tipo=''):
             # Validación para RTN (14 dígitos, sin guiones)
             if not (field_value.isdigit() and len(field_value) == 14):
                 error_message = 'El RTN debe tener exactamente 14 dígitos.'
-        elif tipo == 'Numero de Identidad':
+        elif tipo == 'DNI':
             # Validación para Número de Identidad (13 dígitos, sin guiones)
             if not (field_value.isdigit() and len(field_value) == 13):
                 error_message = 'El Número de Identidad debe tener exactamente 13 dígitos.'
@@ -221,7 +221,7 @@ def validate_input(field_value, field_type='text', tipo=''):
     return error_message
 
 def validate_document(tipo, documento):
-    if tipo == 'Numero de Identidad':
+    if tipo == 'DNI':
         return bool(re.match(r'^\d{13}$', documento))
     elif tipo == 'RTN':
         return bool(re.match(r'^\d{14}$', documento))
@@ -231,7 +231,7 @@ def validate_document(tipo, documento):
 
 
 def format_document(document, doc_type):
-    if doc_type == 'Numero de Identidad':
+    if doc_type == 'DNI':
         return f"{document[:4]}-{document[4:8]}-{document[8:]}"
     elif doc_type == 'RTN':
         return f"{document[:4]}-{document[4:8]}-{document[8:]}"
@@ -239,7 +239,7 @@ def format_document(document, doc_type):
 
 
 def format_document(document, doc_type):
-    if doc_type == 'Numero de Identidad':
+    if doc_type == 'DNI':
         return f"{document[:4]}-{document[4:8]}-{document[8:]}"
     elif doc_type == 'RTN':
         return f"{document[:4]}-{document[4:8]}-{document[8:]}"

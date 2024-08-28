@@ -8,6 +8,7 @@
     <title>Lista de Usuarios | Inventario</title>
 </head>
 <body>
+    <div class="container2">
     <h2>Lista de usuarios</h2>
     <form method="get" action="{{ url_for('usuarios') }}">
         <input type="text" name="search_query" placeholder="Buscar usuarios..." value="{{ search_query }}">
@@ -35,8 +36,8 @@
     </form>
 
     <br>
-    <a class="button-link ing" href="{{ url_for('index_usuarios') }}">Agregar nuevo usuario</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
+
+    <a class="button-link ing2" href="http://127.0.0.1:5030/index_principal">INICIO</a>
     <table>
         <thead>
             <tr>
@@ -47,6 +48,7 @@
                 <th>Contraseña</th>
                 <th>Activo</th>
                 <th>Super Usuario</th>
+                <th>Sucursal</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -57,12 +59,14 @@
                 <td>{{ usuario[1] }}</td>
                 <td>{{ usuario[2] }}</td>
                 <td>{{ usuario[3] }}</td>
-                <td>{{ usuario[4] }}</td>
+                <td> ********* </td>
                 <td>{{ usuario[5] }}</td>
                 <td>{{ usuario[6] }}</td>
+                <td>{{ usuario[7] }}</td>
                 <td>
                     <a class="button-link baa" href="#" onclick="openEditWindow('{{ url_for('edit_usuarios', id_usuario=usuario[0]) }}')">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
                     <a class="button-link bee" href="{{ url_for('eliminar_usuarios', id_usuario=usuario[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+
                 </td>
             </tr>
             {% else %}
@@ -90,5 +94,6 @@
             window.open(url, 'popupWindow', 'width=600,height=400,scrollbars=yes');
         }
         </script>
+        </div>
 </body>
 </html>

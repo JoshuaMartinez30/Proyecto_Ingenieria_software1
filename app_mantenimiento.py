@@ -13,7 +13,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -308,4 +308,4 @@ def delete_mantenimiento_route(id_mantenimiento):
     return redirect(url_for('mantenimientos'))
 
 if __name__ == '__main__':
-    app_mantenimiento.run(debug=True,port=5016)
+    app_mantenimiento.run(debug=True,port=5031)

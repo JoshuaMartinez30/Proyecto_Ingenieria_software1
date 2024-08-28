@@ -12,7 +12,7 @@ def create_connection():
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="",
+            password="qEeKLgpIkdarsoNT",
             database="proyecto_is1"
         )
         if connection.is_connected():
@@ -346,4 +346,4 @@ def eliminar_seguimiento(id_seguimiento):
 
 
 if __name__ == '__main__':
-    app_seguimiento.run(debug=True,port=5025)
+    app_seguimiento.run(debug=True,port=5028)

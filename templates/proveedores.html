@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Lista de proveedores</h1>
+    <div class="container2">
+        <h1 style="text-align: center;">Lista de proveedores</h1>
+
+    <br>
 
     <!-- Formulario de búsqueda -->
     <form method="GET" action="{{ url_for('proveedores') }}" id="searchForm">
@@ -27,7 +30,9 @@
             <input type="text" name="search_query" value="{{ search_query if search_query is not none else '' }}" placeholder="Buscar..." class="search-query">
         </div>
         <div class="per-page-group">
+            
             <label for="per_page">Mostrar:</label>
+            <br>
             <select name="per_page" id="per_page">
                 <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
                 <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
@@ -35,11 +40,13 @@
             </select>
             <input type="hidden" name="page" id="currentPage" value="{{ page }}">
         </div>
+        <br>
         <button type="submit" class="search-button" style="width: 213px;">Buscar</button>
+        <br>
     </form>
 
     <a class="button-link ing" href="{{ url_for('index_proveedores') }}">Ingresar Datos de Proveedor</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5030/index_principal">INICIO</a>
 
     <table>
         <tr>
@@ -65,7 +72,7 @@
             <td>{{ proveedor[6] }}</td>
             <td>{{ proveedor[7] }}</td>
             <td>
-                {% if proveedor[7] == 'Numero de Identidad' %}
+                {% if proveedor[7] == 'DNI' %}
                     {{ proveedor[8][:4] }}-{{ proveedor[8][4:8] }}-{{ proveedor[8][8:] }}
                 {% elif proveedor[7] == 'RTN' %}
                     {{ proveedor[8] }}
@@ -110,6 +117,7 @@
         {% if page < total_pages %}
         <a href="{{ url_for('proveedores', page=page+1, per_page=per_page, search_criteria=search_criteria, search_query=search_query) }}">Siguiente</a>
         {% endif %}
+    </div>
     </div>
 </body>
 </html>

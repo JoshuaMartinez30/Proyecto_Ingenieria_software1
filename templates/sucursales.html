@@ -8,6 +8,7 @@
     <title>Lista de Sucursales | Inventario</title>
 </head>
 <body>
+    <div class="container">
     <h2>Lista de Sucursales</h2>
     <form method="get" action="{{ url_for('sucursales') }}">
         <input type="text" name="search_query" placeholder="Buscar sucursales..." value="{{ search_query }}">
@@ -32,7 +33,7 @@
 
     <br>
     <a class="button-link ing" href="{{ url_for('index_sucursales') }}">Agregar Nueva Sucursal</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5030/index_principal">INICIO</a>
     
     <table>
         <thead>
@@ -78,6 +79,6 @@
             window.open(url, 'popupWindow', 'width=600,height=400,scrollbars=yes');
         }
     </script>
-        
+    </div>
 </body>
 </html>

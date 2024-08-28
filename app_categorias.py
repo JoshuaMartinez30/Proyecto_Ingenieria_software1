@@ -160,8 +160,7 @@ def validate_input(field_value, field_type='text'):
             return "No se permiten números en este campo."
         if re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>/?\\|`~]', field_value):
             return "No se permiten símbolos en este campo."
-        if len(field_value) < 3 or len(field_value) > 20:
-            return "La longitud debe estar entre 3 y 20 caracteres."
+       
     return None
 
 @app_categorias.route('/')

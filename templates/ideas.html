@@ -21,7 +21,7 @@
         <button type="submit">Buscar</button>
     </form>
     <a class="button-link ing" href="{{ url_for('index_ideas') }}">Ingresar Datos de Idea</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5501/index.html">INICIO</a>
     <table>
         <thead>
             <tr>
@@ -45,7 +45,7 @@
                 <td>{{ idea[6] }}</td>
                 <td>
                     <a class="button-link baa" href="{{ url_for('edit_idea', id_mejora=idea[0]) }}">Editar <i class='bx bx-edit' style='color:#000000'></i></a>
-                    <a class="button-link bee" href="{{ url_for('delete_idea_route', id_mejora=idea[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
+                    <a class="button-link bee" href="{{ url_for('eliminar_idea', id_mejora=idea[0]) }}">Eliminar <i class='bx bx-trash-alt' style='color:#000000'></i></a>
                 </td>
             </tr>
             {% endfor %}

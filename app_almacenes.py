@@ -154,6 +154,7 @@ def delete_almacen(id_almacen):
         cursor.close()
         connection.close()
 
+
 def get_historico_almacenes(page, per_page):
     connection = create_connection()
     if connection is None:
@@ -257,13 +258,25 @@ def edit_almacen(id_almacen):
     sucursales = get_sucursales()  # Obtener las sucursales para el formulario
     return render_template('edit_almacen.html', almacen=almacen, sucursales=sucursales)
 
-@app_almacenes.route('/delete_almacen/<int:id_almacen>', methods=['POST'])
-def delete_almacen(id_almacen):
-    if delete_almacen(id_almacen):
-        flash('Almacén eliminado exitosamente!', 'success')
-    else:
-        flash('Ocurrió un error al eliminar el almacén.', 'error')
-    return redirect(url_for('almacenes'))
+@app_almacenes.route('/delete_almacen/<int:id_almacen>', methods=['GET', 'POST'])
+def eliminar_almacen(id_almacen):
+    # Verificar si el método es POST
+    if request.method == 'POST':
+        if delete_almacen(id_almacen):  # Asegúrate de tener una función delete_almacen() definida
+            flash('Almacén eliminado exitosamente.')
+        else:
+            flash('Error al eliminar el almacén.')
+        return redirect(url_for('almacenes'))
+
+    # Si el método no es POST, verificar si el almacén existe
+    almacen = get_almacen_by_id(id_almacen)  # Asegúrate de tener una función get_almacen_by_id() definida
+    if almacen is None:
+        flash('Almacén no encontrado.')
+        return redirect(url_for('almacenes'))
+
+    return render_template('eliminar_almacen.html', almacen=almacen)
+
+
 
 if __name__ == "__main__":
     app_almacenes.run(debug=True,port=5018)

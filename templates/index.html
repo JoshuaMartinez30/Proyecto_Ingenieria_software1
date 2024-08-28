@@ -5,15 +5,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css">
     <title>Inicio | Grupo</title>
 </head>
 <body>
     <!-- ........................................-->
     <div class="carousel-buttons">
         <button onclick="window.location.href='http://127.0.0.1:5017/producto'">PRODUCTOS</button>  
-        <button onclick="window.location.href='http://127.0.0.1:5001/inventario'">ALMACEN CENTRAL</button>
+        <button onclick="window.location.href='http://127.0.0.1:5001/inventario'">ALMACEN <br>CENTRAL</button>
+        {% if session.super_usuario == 1 %}
         <button onclick="window.location.href='http://127.0.0.1:5003/empleados'">EMPLEADOS</button>
+        {% endif %}
     </div>
     <div class="carousel-buttons">
         <button onclick="window.location.href='http://127.0.0.1:5004/cliente'">CLIENTES</button>
@@ -22,13 +24,13 @@
     </div>
     <div class="carousel-buttons">
         <button onclick="window.location.href='http://127.0.0.1:5020/equipos'">EQUIPO</button>
-        <button onclick="window.location.href='http://127.0.0.1:5010/pedidos'">COMPRA CLIENTE</button>
-        <button onclick="window.location.href='http://127.0.0.1:5023/detalles'">DETALLE DE COMPRA CLIENTE</button>
+        <button onclick="window.location.href='http://127.0.0.1:5010/pedidos'">COMPRA <br>CLIENTE</button>
+        <button onclick="window.location.href='http://127.0.0.1:5026/devoluciones'">DEVOLUCION <br>VENTAS</button> 
     </div>
     <div class="carousel-buttons">
         <button onclick="window.location.href='http://127.0.0.1:5014/promocion'">DESCUENTOS</button>
-        <button onclick="window.location.href='http://127.0.0.1:5040/pedidos_compra_pv'">COMPRA PROVEEDOR</button>
-        <button onclick="window.location.href='http://127.0.0.1:5022/detalles_p'">DETALLE DE COMPRA PROVEEDOR</button>
+        <button onclick="window.location.href='http://127.0.0.1:5015/pedidos_compra_pv'">COMPRA <br>PROVEEDOR</button>
+        <button onclick="window.location.href='http://127.0.0.1:5025/devoluciones'">DEVOLUCION <br>COMPRA</button> 
     </div>
     <div class="carousel-buttons">
         <button onclick="window.location.href='http://127.0.0.1:5018/almacenes'">ALMACENES</button>
@@ -37,8 +39,7 @@
     </div>
     <div class="carousel-buttons">
         <button onclick="window.location.href='http://127.0.0.1:5024/impuesto'">IMPUESTOS</button>
-    
-        <button onclick="window.location.href='http://127.0.0.1:5016/mantenimientos'">MANTENIMIENTO</button>
+        <button onclick="window.location.href='http://127.0.0.1:5031/mantenimientos'">MANTENIMIENTO</button>
     </div>
     <!-- ........................................-->
     <nav class="sidebar">
@@ -47,48 +48,37 @@
                 <button type="button" class="sidebar-burger" onclick="toggleSidebar()">
                     <i class='bx bx-menu'></i>
                 </button>
-                <img src="img/first.png" alt="" class="sidebar-logo">
+                <span class="sidebar-logo" style="color: #ffffff;">{{ primer_nombre }} {{ session.primer_apellido }}</span> <!-- Muestra el nombre del usuario -->
             </header>
+            
             <!-- CARRUSEL DE IMAGENES
-    <div class="carousel">
-        <div class="carousel-images">
-            <Dimg src="bimg/ele.jcpg" alte="Imagenc 1">
-            <img src="eimg/ofer.jepg" alts="Imageno 2">
-            <oimg src="nimg/sr.jqpg" altt="Imagend 3">
-            <simg src="dimg/ett.jqpg" alte="Imageni 4">
-            <qimg src="iimg/eter.wqebp" altq="Imagengo 5">
-        </div>
-    </div>
--->
+            <div class="carousel">
+                <div class="carousel-images">
+                    <Dimg src="bimg/ele.jcpg" alte="Imagenc 1">
+                    <img src="eimg/ofer.jepg" alts="Imageno 2">
+                    <oimg src="nimg/sr.jqpg" altt="Imagend 3">
+                    <simg src="dimg/ett.jqpg" alte="Imageni 4">
+                    <qimg src="iimg/eter.wqebp" altq="Imagengo 5">
+                </div>
+            </div>
+            -->
 
             <nav class="sidebar-menu">
-                <button type="button">
-                    <i class='bx bx-home' ></i>
-                    <span>Inicio</span>
+
+
+                <button type="button" onclick="window.location.href='http://127.0.0.1:5030'">
+                    <i class='bx bx-exit'></i>
+                    <span>Cerrar Sesion</span>
                 </button>
-                <button type="button">
-                    <i class='bx bx-user' ></i>
-                    <span>Cuenta</span>
+                {% if session.super_usuario == 1 %}
+                <button type="button" onclick="window.location.href='http://127.0.0.1:5034'">
+                    <i class='bx bx-user-circle'></i>
+                    <span>Usuarios</span>
                 </button>
-                <button type="button" class="has-border">
-                    <i class='bx bx-cog' ></i>
-                    <span>Ajustes</span>
-                </button>
-                <button type="button">
-                    <i class='bx bxs-notepad'></i>
-                    <span>Menu general</span>
-                </button>
-                <button type="button">
-                    <i class='bx bxs-store-alt' ></i>
-                    <span>Tienda</span>
-                </button>
-                <button type="button">
-                    <i class='bx bxs-pie-chart-alt-2'></i>
-                    <span>Datos</span>
-                </button>
-                <button type="button" onclick="window.location.href='http://127.0.0.1:5015/ideas'">
-                    <i class='bx bx-pencil'></i>
-                    <span>IDEAS</span>
+                {% endif %}
+                <button type="button" onclick="window.location.href='http://127.0.0.1:5027/sars'">
+                    <i class='bx bxs-bank'></i>
+                    <span>SAR</span>
                 </button>
                 <button type="button" onclick="window.location.href='http://127.0.0.1:5009/categorias'">
                     <i class='bx bx-money-withdraw' style='color:#ffffff'></i>
@@ -96,16 +86,16 @@
                 </button>
                 <button type="button" onclick="window.location.href='http://127.0.0.1:5002/distribuciones'">
                     <i class='bx bxs-coin'></i>
-                    <span>GESTION ALMACENES</span>
+                    <span>GESTION <br> ALMACENES</span>
                 </button>
                 <button type="button" onclick="window.location.href= 'http://127.0.0.1:5007/puesto_de_trabajo'">
                     <i class='bx bx-paste'></i>
-                    <span>PUESTO DE TRABAJO</span>
+                    <span>PUESTO DE <br> TRABAJO</span>
                 </button>
             </nav>
         </div>
     </nav>
     <!-- ........................................-->
-    <script src="script.js"></script>
+    <script src="http://127.0.0.1:5501/script.js"></script>
 </body>
 </html>

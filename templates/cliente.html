@@ -11,6 +11,7 @@
     </style>
 </head>
 <body>
+    <div class="container2">
     <h2>Lista de Clientes</h2>
     <form method="get" action="{{ url_for('cliente') }}">
         <input type="text" name="search" placeholder="Buscar..." value="{{ search_query }}">
@@ -31,7 +32,7 @@
     <br>
     <a class="button-link ing" href="{{ url_for('index_cliente') }}">Ingresar Nuevo cliente</a>
     <a class="button-link ing" href="{{ url_for('historico_clientes') }}">Historico Clientes</a>
-    <a class="button-link ing2" href="http://127.0.0.1:5500/index.html">INICIO</a>
+    <a class="button-link ing2" href="http://127.0.0.1:5030/index_principal">INICIO</a>
 
     <table>
         <thead>
@@ -89,5 +90,6 @@
             window.open(url, '_blank', 'toolbar=yes,scrollbars=yes,resizable=yes,top=' + top + ',left=' + left + ',width=' + width + ',height=' + height);
         }
     </script>
+    </div>
 </body>
 </html>

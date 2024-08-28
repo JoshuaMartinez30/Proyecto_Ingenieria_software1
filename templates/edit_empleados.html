@@ -7,94 +7,86 @@
     <title>Editar Empleado</title>
     <script>
         function validateForm() {
-            const nombre = document.getElementById('nombre').value;
-            const apellido = document.getElementById('apellido').value;
-            const fechaNacimiento = document.getElementById('fecha_nacimiento').value;
-            const telefono = document.getElementById('telefono').value;
+            const fechaNacimiento = new Date(document.getElementById('fecha_nacimiento').value);
+            const fechaContratacion = new Date(document.getElementById('fecha_contratacion').value);
             const tipo = document.getElementById('tipo').value;
             const documento = document.getElementById('documento').value;
+            const errorMessage = document.getElementById('error-message');
 
-            // Validaciones
-            let error = "";
+            // Reset time to compare dates
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            // Validación de nombre y apellido
-            if (!/^[a-zA-Z\s]{3,20}$/.test(nombre)) {
-                error += "Nombre debe tener entre 3 y 20 caracteres y no debe contener números ni caracteres especiales.\n";
-            }
-            if (!/^[a-zA-Z\s]{3,20}$/.test(apellido)) {
-                error += "Apellido debe tener entre 3 y 20 caracteres y no debe contener números ni caracteres especiales.\n";
-            }
-
-            // Validación de fechas
-            if (!fechaNacimiento.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                error += "Fecha de nacimiento inválida. Debe estar en formato YYYY-MM-DD.\n";
-            }
-            if (!fechaContratacion.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                error += "Fecha de contratación inválida. Debe estar en formato YYYY-MM-DD.\n";
+            // Validate age
+            const age = today.getFullYear() - fechaNacimiento.getFullYear();
+            const monthDifference = today.getMonth() - fechaNacimiento.getMonth();
+            if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < fechaNacimiento.getDate())) {
+                age--;
             }
 
-            // Validación de teléfono
-            if (!/^[23789]\d{7}$/.test(telefono)) {
-                error += "El número de teléfono no es válido. Debe empezar con 2, 3, 7, 8 o 9 y tener 8 dígitos.\n";
-            }
-
-            // Validación de tipo de documento
-            const tipoDocumentoValidations = {
-                'DNI': /^(0[1-9]|1[0-8])\d{11}$/,
-                'RTN': /^(0[1-9]|1[0-8])\d{12}$/,
-                'Pasaporte': /^E\d{7}$/
-            };
-            if (tipo && !tipoDocumentoValidations[tipo].test(documento)) {
-                error += "Documento no válido para el tipo seleccionado.\n";
-            }
-
-            if (error) {
-                alert(error);
+            if (age < 18) {
+                errorMessage.textContent = "La fecha de nacimiento debe ser al menos 18 años antes de la fecha actual.";
                 return false;
             }
+
+            // Validate document format
+            const documentPatterns = {
+                'DNI': /^[0-9]{7}-[A-Z]$/,
+                'RTN': /^[0-9]{4}-[0-9]{4}-[0-9]{6}$/,
+                'Pasaporte': /^[A-Z]{3}[0-9]{7}$/
+            };
+
+            const pattern = documentPatterns[tipo];
+            if (pattern && !pattern.test(documento)) {
+                errorMessage.textContent = "El formato del documento no es válido para el tipo seleccionado.";
+                return false;
+            }
+
+            // If all validations pass
+            errorMessage.textContent = "";
             return true;
         }
 
-        function setDefaultDate() {
+        // Set the current date as the default value for fecha_contratacion
+        function setCurrentDate() {
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha_contratacion').value = today;
-            document.getElementById('fecha_contratacion').setAttribute('readonly', true);
-            document.getElementById('fecha_nacimiento').setAttribute('max', today);
+            const fechaContratacion = document.getElementById('fecha_contratacion');
+            fechaContratacion.value = today;
         }
 
-        window.onload = setDefaultDate;
+        // Set current date on page load
+        window.onload = setCurrentDate;
     </script>
 </head>
 <body>
     <div class="container">
         <h2>Editar Empleado</h2>
-        <form action="{{ url_for('update_employee', employee_id=empleado.id_empleado) }}" method="post" onsubmit="return validateForm()">
+        <form id="editForm" action="{{ url_for('edit_empleados', id_empleado=empleado[0]) }}" method="post" onsubmit="return validateForm()">
+            <div id="error-message" style="color: red;"></div>
             <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" value="{{ empleado.nombre }}" required><br><br>
+            <input type="text" id="nombre" name="nombre" value="{{ empleado[1] }}" required><br><br>
             <label for="apellido">Apellido:</label>
-            <input type="text" id="apellido" name="apellido" value="{{ empleado.apellido }}" required><br><br>
+            <input type="text" id="apellido" name="apellido" value="{{ empleado[2] }}" required><br><br>
             <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
-            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ empleado.fecha_nacimiento }}" required><br><br>
-            <label for="puesto_trabajo">Puesto de Trabajo:</label>
-            <select id="puesto_trabajo" name="puesto_trabajo" required>
-                <option value="Gerente Ventas" {% if empleado.puesto_trabajo == "Gerente Ventas" %}selected{% endif %}>Gerente de Ventas</option>
-                <option value="Asesor de Ventas" {% if empleado.puesto_trabajo == "Asesor de Ventas" %}selected{% endif %}>Asesor de Ventas</option>
-                <option value="Tecnico de Servicio" {% if empleado.puesto_trabajo == "Tecnico de Servicio" %}selected{% endif %}>Técnico de Servicio</option>
-                <option value="Especialista en Marketing" {% if empleado.puesto_trabajo == "Especialista en Marketing" %}selected{% endif %}>Especialista en Marketing</option>
-                <option value="Gerente de Inventario" {% if empleado.puesto_trabajo == "Gerente de Inventario" %}selected{% endif %}>Gerente de Inventario</option>
+            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ empleado[3] }}" required><br><br>
+            <label for="id_puesto">Puesto de Trabajo:</label>
+            <select id="id_puesto" name="id_puesto" required>
+                {% for puesto in puestos_de_trabajo %}
+                <option value="{{ puesto[0] }}" {% if puesto[0] == empleado[4] %}selected{% endif %}>{{ puesto[1] }}</option>
+                {% endfor %}
             </select><br><br>
             <label for="fecha_contratacion">Fecha de Contratación:</label>
-            <input type="date" id="fecha_contratacion" name="fecha_contratacion" value="{{ empleado.fecha_contratacion }}" required><br><br>
-            <label for="sucursal">Sucursal:</label>
-            <select id="sucursal" name="sucursal" required>
+            <input type="date" id="fecha_contratacion" name="fecha_contratacion" value="{{ empleado[5] }}" required><br><br>
+            <label for="id_sucursal">Sucursal:</label>
+            <select id="id_sucursal" name="id_sucursal" required>
                 {% for sucursal in sucursales %}
-                <option value="{{ sucursal.id_sucursal }}" {% if sucursal.id_sucursal == empleado.id_sucursal %}selected{% endif %}>{{ sucursal.nombre_sucursal }}</option>
+                <option value="{{ sucursal[0] }}" {% if sucursal[0] == empleado[6] %}selected{% endif %}>{{ sucursal[1] }}</option>
                 {% endfor %}
             </select><br><br>
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="{{ empleado.email }}"><br><br>
+            <input type="email" id="email" name="email" value="{{ empleado[7] }}"><br><br>
             <label for="telefono">Teléfono:</label>
-            <input type="text" id="telefono" name="telefono" value="{{ empleado.telefono }}"><br><br>
+            <input type="text" id="telefono" name="telefono" value="{{ empleado[8] }}"><br><br>
             <label for="tipo">Tipo:</label>
             <select id="tipo" name="tipo" required>
                 <option value="DNI" {% if empleado.tipo == "DNI" %}selected{% endif %}>DNI</option>
@@ -102,8 +94,8 @@
                 <option value="Pasaporte" {% if empleado.tipo == "Pasaporte" %}selected{% endif %}>Pasaporte</option>
             </select><br><br>
             <label for="documento">Documento:</label>
-            <input type="text" id="documento" name="documento" value="{{ empleado.documento }}"><br><br>
-            <input type="submit" value="Guardar Cambios">
+            <input type="text" id="documento" name="documento" value="{{ empleado[10] }}" required><br><br>
+            <input type="submit" value="Actualizar">
         </form>
         <br>
         <a href="{{ url_for('empleados') }}">Lista de empleados</a>

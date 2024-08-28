@@ -83,6 +83,11 @@
                 errores.push("El apellido no debe contener números ni símbolos, ni tener tres letras iguales consecutivas.");
             }
 
+            // Validación para evitar que nombre y apellido sean iguales
+            if (nombre.toLowerCase() === apellido.toLowerCase()) {
+                errores.push("El nombre y el apellido no pueden ser iguales.");
+            }
+
             // Validación de fecha de nacimiento
             var fechaNacimiento = new Date(document.getElementById('fecha_nacimiento').value);
             var fechaLimite = new Date('1920-01-01');
@@ -104,15 +109,21 @@
             var tipo = document.getElementById('tipo').value;
             var documento = document.getElementById('documento').value;
             var regexDNI = /^[0-1][0-8]\d{11}$/;
-            var regexRTN = /^[0-1][0-8]\d{12}$/;
+            var regexRTN = /^\d{13}$/;  // 13 dígitos sin guiones
             var regexPasaporte = /^E\d{7}$/;
 
             if (tipo === "DNI" && !regexDNI.test(documento)) {
                 errores.push("El DNI debe tener 13 números y comenzar con un número entre 01 y 18.");
             } else if (tipo === "RTN" && !regexRTN.test(documento)) {
-                errores.push("El RTN debe tener 14 números y comenzar con un número entre 01 y 18.");
+                errores.push("El RTN debe tener 13 números.");
             } else if (tipo === "Pasaporte" && !regexPasaporte.test(documento)) {
                 errores.push("El Pasaporte debe comenzar con 'E' seguido de 7 números.");
+            }
+
+            // Formatear el RTN para que sea más legible antes de enviarlo
+            if (tipo === "RTN" && regexRTN.test(documento)) {
+                documento = documento.replace(/^(\d{4})(\d{4})(\d{5})$/, "$1-$2-$3");
+                document.getElementById('documento').value = documento;  // Actualiza el valor del campo con el formato
             }
 
             // Si hay errores, mostrar alerta y prevenir el envío del formulario
@@ -143,6 +154,7 @@
                 event.preventDefault(); // Prevenir el envío estándar del formulario
             }
         });
+
     </script>
 </body>
 </html>

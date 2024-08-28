@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Devoluciones de Compra</title>
     <script>
+        let receiptDate = '';
         let availableQuantity = 0;
 
         async function loadDetalles() {
@@ -19,19 +20,12 @@
             // Clear available quantity whenever new details are loaded
             availableQuantity = 0;
 
-            if (detalles.length > 0) {
-                detalles.forEach(detalle => {
-                    const option = document.createElement('option');
-                    option.value = detalle.id_detalle;
-                    option.text = `${detalle.nombre_producto} - Cantidad: ${detalle.cantidad}`;
-                    detallesSelect.add(option);
-                });
-            } else {
+            detalles.forEach(detalle => {
                 const option = document.createElement('option');
-                option.value = "";
-                option.text = "No hay detalles disponibles";
+                option.value = detalle.id_detalle; // Ensure this property is correct
+                option.text = `${detalle.nombre_producto} - Cantidad: ${detalle.cantidad}`; // Show product name
                 detallesSelect.add(option);
-            }
+            });
         }
 
         async function loadDetalleInfo() {
@@ -39,36 +33,12 @@
             if (idDetalle) {
                 const response = await fetch(`/detalle-info/${idDetalle}`);
                 const detalleInfo = await response.json();
-                availableQuantity = detalleInfo.cantidad || 0; // Ensure quantity is a number
+                receiptDate = detalleInfo.fecha_recepcion; // Ensure this property exists
+                availableQuantity = detalleInfo.cantidad; // Ensure this property exists
             }
         }
 
-        function validateForm(event) {
-            const motivo = document.querySelector('[name="motivo"]').value;
-            const cantidadDevuelta = parseInt(document.querySelector('[name="cantidad_devuelta"]').value, 10);
-
-            // Validate motivo
-            if (!motivo || motivo.length < 3 || motivo.length > 100) {
-                alert('El motivo debe tener entre 3 y 100 caracteres.');
-                event.preventDefault();
-                return;
-            }
-
-            // Validate cantidad_devuelta
-            if (isNaN(cantidadDevuelta) || cantidadDevuelta < 1 || cantidadDevuelta > availableQuantity) {
-                alert(`La cantidad devuelta debe ser un número positivo mayor o igual a 1 y menor o igual a ${availableQuantity}.`);
-                event.preventDefault();
-                return;
-            }
-        }
-
-        // Set default date to current date
-        function setDefaultDate() {
-            const today = new Date().toISOString().split('T')[0];
-            document.querySelector('[name="fecha_devolucion"]').value = today;
-        }
-
-        window.onload = setDefaultDate;
+        
     </script>
 </head>
 <body>
@@ -80,7 +50,7 @@
             <select id="id_pedido" name="id_pedido" onchange="loadDetalles()" required>
                 <option value="" disabled selected>Seleccionar</option>
                 {% for pedido in pedidos %}
-                    <option value="{{ pedido[0] }}">{{ pedido[0] }}</option>
+                    <option value="{{ pedido[0] }}">{{ pedido[0] }}</option> <!-- Muestra solo el ID del pedido -->
                 {% endfor %}
             </select>
 
@@ -90,13 +60,13 @@
             </select>
 
             <label for="fecha_devolucion">Fecha Devolución:</label>
-            <input type="date" name="fecha_devolucion" required readonly>
+            <input type="date" name="fecha_devolucion" required>
 
             <label for="motivo">Motivo:</label>
             <input type="text" name="motivo" required>
 
             <label for="cantidad_devuelta">Cantidad Devuelta:</label>
-            <input type="number" name="cantidad_devuelta" min="1" required>
+            <input type="number" name="cantidad_devuelta" required>
 
             <button type="submit">Registrar Devolución</button>
         </form>

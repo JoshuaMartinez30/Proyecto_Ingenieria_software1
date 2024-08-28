@@ -4,71 +4,20 @@
     <meta charset="UTF-8">
     <title>Ingrese el proveedor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script>
-        function validateForm() {
-            // Obtener los valores de los campos
-            var nombreProveedor = document.getElementById('Nombre_del_proveedor').value;
-            var productoServicio = document.getElementById('Producto_Servicio').value;
-            var historialDesempeno = document.getElementById('Historial_de_desempeño').value;
-            var nombreCompania = document.getElementById('nombre_compañia').value;
-            var telefono = document.getElementById('Telefono').value;
-            var ciudad = document.getElementById('Ciudad').value;
-            var tipo = document.getElementById('Tipo').value;
-            var documento = document.getElementById('Documento').value;
-            
-            // Validaciones
-            if (!nombreProveedor || !productoServicio || !historialDesempeno || !nombreCompania || !telefono || !ciudad || !tipo || !documento) {
-                alert("Todos los campos son obligatorios.");
-                return false;
-            }
-            
-            if (/([a-zA-Z])\1{2}/.test(nombreProveedor) || /([a-zA-Z])\1{2}/.test(productoServicio) || /([a-zA-Z])\1{2}/.test(nombreCompania) || /([a-zA-Z])\1{2}/.test(ciudad)) {
-                alert("Ningún campo de texto debe tener tres letras repetidas.");
-                return false;
-            }
-            
-            if (/[^a-zA-Z\s]/.test(nombreProveedor) || /[^a-zA-Z\s]/.test(productoServicio) || /[^a-zA-Z\s]/.test(nombreCompania) || /[^a-zA-Z\s]/.test(ciudad)) {
-                alert("Los campos de texto no deben contener caracteres especiales.");
-                return false;
-            }
-
-            if (telefono.length !== 8 || isNaN(telefono)) {
-                alert("El teléfono debe tener 8 dígitos.");
-                return false;
-            }
-
-            if (!validateDocumento(tipo, documento)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        function validateDocumento(tipo, documento) {
-            if (tipo === 'Número de Identidad') {
-                if (!/^\d{13}$/.test(documento)) {
-                    alert("Número de Identidad debe tener 13 dígitos.");
-                    return false;
-                }
-            } else if (tipo === 'RTN') {
-                if (!/^\d{14}$/.test(documento)) {
-                    alert("RTN debe tener 14 dígitos.");
-                    return false;
-                }
-            } else if (tipo === 'Pasaporte') {
-                if (!/^E\d{7}$/.test(documento)) {
-                    alert("Pasaporte debe comenzar con una E y ser seguido por 7 dígitos.");
-                    return false;
-                }
-            }
-            return true;
-        }
-    </script>
 </head>
 <body>
     <div class="container">
         <h2>Ingrese su proveedor</h2>
-        <form action="{{ url_for('submit') }}" method="post" onsubmit="return validateForm()">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('submit') }}" method="post">
             <label for="Nombre_del_proveedor">Nombre del proveedor:</label>
             <input type="text" id="Nombre_del_proveedor" name="Nombre_del_proveedor" required><br><br>
             
@@ -93,7 +42,7 @@
 
             <label for="Tipo">Tipo:</label>
             <select id="Tipo" name="Tipo" required>
-                <option value="Numero de Identidad">Número de Identidad</option>
+                <option value="DNI">DNI</option>
                 <option value="Pasaporte">Pasaporte</option>
                 <option value="RTN">RTN</option>
             </select><br><br>

@@ -54,13 +54,12 @@
             <input type="submit" value="Guardar">
         </form>
         <br>
-        <a value="lista de productos en el cliente" href="{{ url_for('cliente') }}">Lista de Clientes</a>
+        <a href="{{ url_for('cliente') }}">Lista de Clientes</a>
     </div>
 
     <script>
         // Configura la fecha actual por defecto para los campos de fecha
         var fechaHoy = new Date().toISOString().split('T')[0]; // Obtiene la fecha en formato YYYY-MM-DD
-        document.getElementById('fecha_nacimiento').valueAsDate = new Date();
         document.getElementById('fecha_registro').value = fechaHoy;
 
         document.getElementById('clientForm').addEventListener('submit', function(event) {
@@ -78,6 +77,11 @@
 
             if (!regexTexto.test(apellido) || regexTresLetras.test(apellido)) {
                 errores.push("El apellido no debe contener números ni símbolos, ni tener tres letras iguales consecutivas.");
+            }
+
+            // Validación para evitar que nombre y apellido sean iguales
+            if (nombre.toLowerCase() === apellido.toLowerCase()) {
+                errores.push("El nombre y el apellido no pueden ser iguales.");
             }
 
             // Validación de fecha de nacimiento
@@ -101,7 +105,7 @@
             var tipo = document.getElementById('tipo').value;
             var documento = document.getElementById('documento').value;
             var regexDNI = /^[0-1][0-8]\d{11}$/;
-            var regexRTN = /^[0-1][0-8]\d{12}$/;
+            var regexRTN = /^[0-1][0-8]\d{13}$/; // Ajustado a 13 dígitos
             var regexPasaporte = /^E\d{7}$/;
 
             if (tipo === "DNI" && !regexDNI.test(documento)) {

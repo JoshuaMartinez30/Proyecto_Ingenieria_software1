@@ -27,6 +27,13 @@
             <input type="email" id="correo" name="correo" required pattern="[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+" title="Formato de correo inválido"><br><br>
             <label for="nationality">Contraseña:</label>
             <input type="password" id="password" name="password" required minlength="6" maxlength="20" title="Mínimo 6 y máximo 20 caracteres"><br><br>
+            <label for="id_sucursal">Sucursal:</label>
+            <select id="id_sucursal" name="id_sucursal" required>
+                <option value="" disabled selected>Seleccione una sucursal</option>
+                {% for sucursales in sucursales %}
+                <option value="{{ sucursales[0] }}">{{ sucursales[1] }}</option>
+                {% endfor %}
+            </select><br><br>
             <input type="submit" value="Guardar">
         </form>
         <br>

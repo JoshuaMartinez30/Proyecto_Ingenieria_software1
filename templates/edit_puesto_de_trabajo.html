@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,23 +7,6 @@
     <title>Editar puesto de trabajo</title>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializa la fecha actual en el campo de fecha
-            var fechaInput = document.getElementById('fecha');
-            var hoy = new Date().toISOString().split('T')[0];
-            fechaInput.setAttribute('min', hoy);
-            fechaInput.value = hoy;
-
-            // Función para validar el campo Documento
-            function validateDocumento() {
-                var documento = document.getElementById('documento').value;
-                var documentoRegex = /^([01][0-8])\d{11}$/;
-                if (!documentoRegex.test(documento)) {
-                    alert("El Documento debe tener exactamente 13 dígitos y empezar con un número del 01 al 18.");
-                    return false;
-                }
-                return true;
-            }
-
             // Función para validar el campo Hora de Inicio y Hora de Fin
             function validateHora() {
                 var horaInicioInput = document.getElementById('hora_inicio');
@@ -79,16 +62,17 @@
 
             // Función para manejar el envío del formulario
             document.querySelector('form').addEventListener('submit', function(event) {
-                if (!validateDocumento() || !validateHora() || !validatePuestoTrabajo() || !validateSalario()) {
+                if (!validateHora() || !validatePuestoTrabajo() || !validateSalario()) {
                     event.preventDefault();  // Evita el envío del formulario si hay errores
                 } else {
                     // Mensaje de éxito
                     alert("Formulario enviado correctamente.");
 
                     // Actualiza la ventana principal y cierra la ventana emergente
-                    function closeWindow() {
-                window.close();
-            }
+                    if (window.opener) {
+                        window.opener.location.reload(); // Actualiza la ventana original
+                    }
+                    window.close(); // Cierra la ventana actual
                 }
             });
 
@@ -123,24 +107,18 @@
           {% endif %}
         {% endwith %}
         <form action="{{ url_for('edit_puesto_de_trabajo', id_puesto=puesto_de_trabajo[0]) }}" method="post">
+        
+            <label for="puesto_trabajo">Puesto Trabajo:</label>
+            <input type="text" id="puesto_trabajo" name="puesto_trabajo" value="{{ puesto_de_trabajo[4] }}" required><br><br>
 
-            <label for="id_puesto">ID Puesto:</label>
-            <input type="text" id="id_puesto" name="id_puesto" value="{{ puesto_de_trabajo[0] }}" readonly><br><br>
-
-            <label for="fecha">Fecha:</label>
-            <input type="date" id="fecha" name="fecha" value="{{ puesto_de_trabajo[2] }}" required><br><br>
-    
             <label for="hora_inicio">Hora de Inicio:</label>
-            <input type="time" id="hora_inicio" name="hora_inicio" value="{{ puesto_de_trabajo[3] }}" required><br><br>
+            <input type="time" id="hora_inicio" name="hora_inicio" value="{{ puesto_de_trabajo[2] }}" required><br><br>
     
             <label for="hora_fin">Hora de Fin:</label>
-            <input type="time" id="hora_fin" name="hora_fin" value="{{ puesto_de_trabajo[4] }}" required><br><br>
-
-            <label for="puesto_trabajo">Puesto Trabajo:</label>
-            <input type="text" id="puesto_trabajo" name="puesto_trabajo" value="{{ puesto_de_trabajo[5] }}" required><br><br>
+            <input type="time" id="hora_fin" name="hora_fin" value="{{ puesto_de_trabajo[3] }}" required><br><br>
 
             <label for="salario">Salario:</label>
-            <input type="text" id="salario" name="salario" value="{{ puesto_de_trabajo[6] }}" required><br><br>
+            <input type="text" id="salario" name="salario" value="{{ puesto_de_trabajo[5] }}" required><br><br>
 
             <input type="submit" value="Actualizar puesto">
         </form>

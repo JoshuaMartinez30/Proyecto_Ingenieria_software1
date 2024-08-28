@@ -4,90 +4,6 @@
     <meta charset="UTF-8">
     <title>Editar Proveedor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script>
-        function validateForm() {
-            var nombreProveedor = document.querySelector('input[name="Nombre_del_proveedor"]').value;
-            var productoServicio = document.querySelector('input[name="Producto_Servicio"]').value;
-            var nombreCompania = document.querySelector('input[name="nombre_compañia"]').value;
-            var telefono = document.getElementById('Telefono').value;
-            var ciudad = document.querySelector('input[name="Ciudad"]').value;
-            var tipo = document.querySelector('select[name="tipo"]').value;
-            var documento = document.querySelector('input[name="Documento"]').value;
-
-            // Validaciones
-            if (!nombreProveedor || !productoServicio || !nombreCompania || !telefono || !ciudad || !tipo || !documento) {
-                alert("Todos los campos son obligatorios.");
-                return false;
-            }
-
-            if (/([a-zA-Z])\1{2}/.test(nombreProveedor) || /([a-zA-Z])\1{2}/.test(productoServicio) || /([a-zA-Z])\1{2}/.test(nombreCompania) || /([a-zA-Z])\1{2}/.test(ciudad)) {
-                alert("Ningún campo de texto debe tener tres letras repetidas.");
-                return false;
-            }
-
-            if (/[^a-zA-Z\s]/.test(nombreProveedor) || /[^a-zA-Z\s]/.test(productoServicio) || /[^a-zA-Z\s]/.test(nombreCompania) || /[^a-zA-Z\s]/.test(ciudad)) {
-                alert("Los campos de texto no deben contener caracteres especiales.");
-                return false;
-            }
-
-            if (telefono.length !== 8 || isNaN(telefono)) {
-                alert("El teléfono debe tener 8 dígitos.");
-                return false;
-            }
-
-            if (!validateDocumento(tipo, documento)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        function validateDocumento(tipo, documento) {
-            if (tipo === 'Número de Identidad') {
-                if (!/^\d{13}$/.test(documento)) {
-                    alert("Número de Identidad debe tener 13 dígitos.");
-                    return false;
-                }
-            } else if (tipo === 'RTN') {
-                if (!/^\d{14}$/.test(documento)) {
-                    alert("RTN debe tener 14 dígitos.");
-                    return false;
-                }
-            } else if (tipo === 'Pasaporte') {
-                if (!/^E\d{7}$/.test(documento)) {
-                    alert("Pasaporte debe comenzar con una E y ser seguido por 7 dígitos.");
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            var editForm = document.getElementById('editForm');
-            editForm.addEventListener('submit', function(event) {
-                if (!validateForm()) {
-                    event.preventDefault();  // Evita el envío del formulario si hay errores
-                }
-            });
-
-            var telefonoInput = document.getElementById('Telefono');
-            if (telefonoInput) {
-                telefonoInput.addEventListener('input', function(event) {
-                    var value = event.target.value.replace(/[^0-9]/g, ''); // Solo números
-                    if (value.length > 4) {
-                        value = value.slice(0, 4) + '-' + value.slice(4, 8);
-                    }
-                    event.target.value = value;
-                });
-
-                // Asegura que el valor inicial tenga el guion si es un número válido
-                var initialValue = telefonoInput.value.replace(/[^0-9]/g, '');
-                if (initialValue.length === 8) {
-                    telefonoInput.value = initialValue.slice(0, 4) + '-' + initialValue.slice(4, 8);
-                }
-            }
-        });
-    </script>
 </head>
 <body>
     <div class="container">
@@ -111,7 +27,7 @@
             <input type="text" name="Ciudad" value="{{ proveedores[6] }}" required>
             <label>Tipo:</label>
             <select name="tipo" required>
-                <option value="Numero de Identidad" {% if proveedores[7] == 'Numero de Identidad' %}selected{% endif %}>Número de Identidad</option>
+                <option value="DNI" {% if proveedores[7] == 'DNI' %}selected{% endif %}>DNI</option>
                 <option value="Pasaporte" {% if proveedores[7] == 'Pasaporte' %}selected{% endif %}>Pasaporte</option>
                 <option value="RTN" {% if proveedores[7] == 'RTN' %}selected{% endif %}>RTN</option>
             </select>
@@ -122,5 +38,57 @@
         <br>
         <a href="#" onclick="closeWindow()">Cerrar ventana</a>
     </div>
+
+    <script>
+        function closeWindow() {
+            window.close();
+        }
+    
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Evita el envío del formulario por defecto
+    
+            var formData = new FormData(this);
+    
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    if (window.opener) {
+                        window.opener.location.reload(); // Recarga la ventana principal
+                    }
+                    closeWindow();
+                } else {
+                    throw new Error('Error al actualizar el proveedor');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    
+        // Función para formatear el número de teléfono con un guion automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            var telefonoInput = document.getElementById('Telefono');
+            if (telefonoInput) {
+                telefonoInput.addEventListener('input', function(event) {
+                    var value = event.target.value.replace(/[^0-9]/g, ''); // Solo números
+                    if (value.length > 4) {
+                        value = value.slice(0, 4) + '-' + value.slice(4, 8);
+                    }
+                    event.target.value = value;
+                });
+    
+                // Asegura que el valor inicial tenga el guion si es un número válido
+                var initialValue = telefonoInput.value.replace(/[^0-9]/g, '');
+                if (initialValue.length === 8) {
+                    telefonoInput.value = initialValue.slice(0, 4) + '-' + initialValue.slice(4, 8);
+                }
+            }
+        });
+    </script>
+    
+    
 </body>
 </html>
